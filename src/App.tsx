@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { AppShell } from './components/layout/AppShell'
 import HomePage from './pages/Home/HomePage'
 import DashboardPage from './pages/Dashboard/DashboardPage'
@@ -67,5 +68,10 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <RouterProvider router={router} />
+      <Analytics />
+    </>
+  )
 }
