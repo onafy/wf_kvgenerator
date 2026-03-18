@@ -25,10 +25,8 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
 
   if (!isOpen) return null;
 
-  // Filter by type (simulated - in real app, DAM would have type field)
   const filterByType = (assets: DAMAsset[]) => {
     if (activeTab === 'all') return assets
-    // Mock filtering based on filename patterns
     return assets.filter(a => {
       if (activeTab === 'photos') return a.filename.match(/\.(jpg|jpeg|png)$/i)
       if (activeTab === 'illustrations') return a.filename.match(/\.(svg|ai|eps)$/i) || a.filename.toLowerCase().includes('illustration')
@@ -37,13 +35,11 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
     })
   }
 
-  // Filter by campaign
   const filterByCampaign = (assets: DAMAsset[]) => {
     if (campaignFilter === 'All Campaigns') return assets
     return assets.filter(a => a.campaignTag === campaignFilter)
   }
 
-  // Combined filter
   const filtered = filterByCampaign(filterByType(
     mockDAMAssets.filter((a) =>
       a.filename.toLowerCase().includes(q.toLowerCase()) ||
@@ -51,7 +47,6 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
     )
   ))
 
-  // Get unique campaign tags from mock data
   const availableCampaignTags = [...new Set(mockDAMAssets.map(a => a.campaignTag))]
 
   const handleToggle = (asset: DAMAsset) => {
@@ -59,7 +54,7 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
     if (newSet.has(asset.id)) {
       newSet.delete(asset.id)
     } else {
-      newSet.add(asset.id)  // No limit - unlimited selection
+      newSet.add(asset.id)
     }
     setSelectedIds(newSet)
   }
@@ -79,20 +74,18 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
   ] as const
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm transition-all">
-      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/80">
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div className="bg-frnd-dark rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-white/10">
+        <div className="px-6 py-4 border-b border-white/10 flex justify-between items-center">
            <div>
-             <h2 className="text-lg font-bold text-gray-900">Browse DAM Assets</h2>
+             <h2 className="text-lg font-bold text-white">Browse DAM Assets</h2>
              <p className="text-xs text-gray-500">Select unlimited assets for your campaign</p>
            </div>
-           <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-full transition-colors"><X size={20}/></button>
+           <button onClick={onClose} className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"><X size={20}/></button>
         </div>
 
-        {/* Filters */}
-        <div className="px-6 py-3 border-b border-gray-100 bg-white">
+        <div className="px-6 py-3 border-b border-white/10 bg-white/5">
           <div className="flex flex-col gap-3">
-            {/* Type Tabs */}
             <div className="flex gap-1">
               {tabs.map((tab) => (
                 <button
@@ -100,8 +93,8 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
                   onClick={() => setActiveTab(tab.key)}
                   className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                     activeTab === tab.key
-                      ? 'bg-cimb-red text-white'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-white text-frnd-dark'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   {tab.label}
@@ -109,36 +102,36 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
               ))}
             </div>
 
-            {/* Search and Campaign Filter */}
             <div className="flex gap-3">
               <div className="flex-1 relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Search by filename..."
-                  className="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red"
+                  className="w-full pl-10 pr-4 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cimb-red/50"
                 />
               </div>
               <select
                 value={campaignFilter}
                 onChange={(e) => setCampaignFilter(e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red bg-white"
+                className="px-3 py-2 text-sm border border-white/10 rounded-lg bg-white/5 text-gray-300 focus:outline-none focus:border-cimb-red/50"
               >
+                <option value="All Campaigns" className="bg-frnd-dark">All Campaigns</option>
                 {availableCampaignTags.map((tag) => (
-                  <option key={tag} value={tag}>{tag}</option>
+                  <option key={tag} value={tag} className="bg-frnd-dark">{tag}</option>
                 ))}
               </select>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 bg-gray-50/30 min-h-[300px]">
+        <div className="flex-1 overflow-y-auto p-6 bg-black/20 min-h-[300px]">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <Search size={48} className="text-gray-300 mb-4" />
-              <p className="text-gray-500 font-medium">No assets found</p>
-              <p className="text-gray-400 text-sm">Try adjusting your filters or search query</p>
+              <Search size={48} className="text-gray-600 mb-4" />
+              <p className="text-gray-400 font-medium">No assets found</p>
+              <p className="text-gray-600 text-sm">Try adjusting your filters or search query</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
@@ -148,20 +141,24 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
                    <div
                     key={asset.id}
                     onClick={() => handleToggle(asset)}
-                    className={`group relative rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${isSelected ? 'border-cimb-red ring-4 ring-cimb-red/10' : 'border-gray-200 hover:border-gray-300'}`}
+                    className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-cimb-red ring-4 ring-cimb-red/20'
+                        : 'border-white/10 hover:border-white/30'
+                    }`}
                    >
                       <div className="aspect-square relative">
                         <img src={asset.thumbnailUrl} alt={asset.filename} className={`w-full h-full object-cover transition-transform duration-300 ${isSelected ? 'scale-105' : 'group-hover:scale-105'}`} />
-                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
                         {isSelected && (
                           <div className="absolute top-2 right-2 bg-cimb-red rounded-full p-0.5 shadow-lg">
                             <CheckCircle2 size={16} className="text-white" />
                           </div>
                         )}
                       </div>
-                      <div className="p-2 bg-white">
-                         <p className="text-xs font-medium text-gray-700 truncate">{asset.filename}</p>
-                         <p className="text-[10px] text-gray-400">{asset.dimensionLabel}</p>
+                      <div className="p-2 bg-white/5">
+                         <p className="text-xs font-medium text-gray-300 truncate">{asset.filename}</p>
+                         <p className="text-[10px] text-gray-600">{asset.dimensionLabel}</p>
                       </div>
                    </div>
                  )
@@ -170,14 +167,14 @@ function DAMBrowserModal({ isOpen, onClose, onSelectMultiple }: { isOpen: boolea
           )}
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-between items-center bg-white">
-           <span className="text-sm font-medium text-gray-600">{selectedIds.size} asset{selectedIds.size !== 1 ? 's' : ''} selected</span>
+        <div className="px-6 py-4 border-t border-white/10 flex justify-between items-center bg-white/5">
+           <span className="text-sm font-medium text-gray-400">{selectedIds.size} asset{selectedIds.size !== 1 ? 's' : ''} selected</span>
            <div className="flex gap-3">
-              <button onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-xl transition-colors">Cancel</button>
+              <button onClick={onClose} className="px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors">Cancel</button>
               <button
                 disabled={selectedIds.size === 0}
                 onClick={handleConfirm}
-                className="px-6 py-2.5 text-sm font-medium text-white bg-cimb-red hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors shadow-sm"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-cimb-red hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors"
               >
                 {selectedIds.size === 0 ? 'Select at least 1 asset to continue' : `Add ${selectedIds.size} Asset${selectedIds.size !== 1 ? 's' : ''}`}
               </button>
@@ -195,10 +192,7 @@ export default function AssetConfigPage() {
   const [showAiSuggestions, setShowAiSuggestions] = useState(false)
   const [isDamModalOpen, setIsDamModalOpen] = useState(false)
 
-  // Auto-generate project name preview
   const autoProjectName = draft.copy.trim().split(/\s+/).slice(0, 4).join(' ')
-
-  // All selected assets - single array, no base/custom distinction
   const totalAssets = draft.assets.length
 
   const handleAddAssets = (assetsToAdd: DAMAsset[]) => {
@@ -221,9 +215,9 @@ export default function AssetConfigPage() {
   }, [draft.segment])
 
   const appendChip = (chip: string) => {
-    const current = draft.artDirection.trim()
-    const newVal = current ? `${current}, ${chip}` : chip
-    if (newVal.length <= 100) updateDraft({ artDirection: newVal })
+    const current = draft.artDirection || ''
+    const newValue = current ? `${current}, ${chip}` : chip
+    updateDraft({ artDirection: newValue.slice(0, 100) })
   }
 
   const handleLock = () => {
@@ -234,7 +228,6 @@ export default function AssetConfigPage() {
     if (!draft.funnel) errs.push('Funnel stage is required.')
     if (errs.length) { setErrors(errs); return }
     setErrors([])
-    // Directly lock context and proceed to generation
     lockContext()
     navigate('/kv-generator/new/generate')
   }
@@ -242,36 +235,33 @@ export default function AssetConfigPage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
       {errors.length > 0 && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          {errors.map((e) => <div key={e} className="flex items-center gap-2 text-sm text-red-600"><AlertCircle size={14} />{e}</div>)}
+        <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          {errors.map((e) => <div key={e} className="flex items-center gap-2 text-sm text-red-400"><AlertCircle size={14} />{e}</div>)}
         </div>
       )}
 
       <div className="grid grid-cols-3 gap-6">
-        {/* Left: Assets + Context */}
         <div className="col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
                <div>
-                  <h3 className="font-bold text-gray-900 text-base">Campaign Assets</h3>
+                  <h3 className="font-bold text-white text-base">Campaign Assets</h3>
                   <p className="text-sm text-gray-500 mt-0.5">Your Base Asset defines the layout context; Custom Assets are mapped dynamically.</p>
                </div>
-               <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">{totalAssets} Selected</span>
+               <span className="text-xs font-semibold text-gray-500 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">{totalAssets} Selected</span>
             </div>
 
-            {/* Assets Display - Flexible Grid */}
             {totalAssets > 0 && (
               <div className="mb-4">
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-                  {/* All Assets - no base/custom distinction */}
+                <div className="flex gap-3 overflow-x-auto pb-2">
                   {draft.assets.map((asset, idx) => (
-                    <div key={`asset-${asset.id}-${idx}`} className="shrink-0 w-32 rounded-xl border-2 border-gray-200 bg-gray-50 overflow-hidden relative group hover:border-gray-300 transition-colors">
-                       <div className="px-2 py-1.5 bg-gray-200 text-gray-600">
-                          <span className="text-[10px] uppercase tracking-wider font-bold">Asset {idx + 1}</span>
+                    <div key={`asset-${asset.id}-${idx}`} className="shrink-0 w-32 rounded-xl border border-white/10 bg-white/5 overflow-hidden relative group hover:border-white/30 transition-colors">
+                       <div className="px-2 py-1.5 bg-white/10">
+                          <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Asset {idx + 1}</span>
                        </div>
                        <div className="aspect-[3/4] relative">
                           <img src={asset.thumbnailUrl} className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
                              <button onClick={() => handleRemoveAsset(idx)} className="bg-white/90 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold">Remove</button>
                           </div>
                        </div>
@@ -281,19 +271,18 @@ export default function AssetConfigPage() {
               </div>
             )}
 
-            {/* Add More Assets */}
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-200 hover:border-gray-300 rounded-xl bg-gray-50/50 p-5 transition-all">
-               <p className="text-sm text-gray-600 mb-3 text-center">
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-white/10 hover:border-white/20 rounded-xl bg-white/5 p-5 transition-all">
+               <p className="text-sm text-gray-400 mb-3 text-center">
                   {totalAssets === 0
                     ? 'Add your first asset to get started'
                     : `Add more assets (${totalAssets} currently selected)`}
                </p>
                <div className="flex gap-3">
-                  <button onClick={() => setIsDamModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:border-cimb-red hover:text-cimb-red shadow-sm transition-all hover:shadow">
+                  <button onClick={() => setIsDamModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-white/10 text-white border border-white/20 rounded-xl text-sm font-medium hover:bg-white/20 transition-all">
                      <Search size={16} /> Browse DAM
                   </button>
 
-                  <label className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white border border-transparent rounded-xl text-sm font-medium hover:bg-black shadow-sm transition-all hover:shadow cursor-pointer">
+                  <label className="flex items-center gap-2 px-5 py-2.5 bg-cimb-red text-white border border-transparent rounded-xl text-sm font-medium hover:bg-red-700 transition-all cursor-pointer">
                      <Upload size={16} /> Upload Files
                      <input type="file" multiple accept="image/png, image/jpeg" className="hidden" onChange={(e) => {
                         if (e.target.files?.length) {
@@ -309,84 +298,85 @@ export default function AssetConfigPage() {
                   </label>
                </div>
                <div className="flex items-center gap-1 mt-3">
-                  <Lock size={10} className="text-green-600" />
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Unlimited assets supported</p>
+                  <Lock size={10} className="text-green-400" />
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wide font-medium">Unlimited assets supported</p>
                </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="font-semibold text-gray-900 mb-4">Campaign Context</h3>
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
+            <h3 className="font-semibold text-white mb-4">Campaign Context</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Project Name <span className="text-gray-400 font-normal">(optional)</span>
+                <label className="block text-xs font-medium text-gray-400 mb-1">
+                  Project Name <span className="text-gray-600 font-normal">(optional)</span>
                 </label>
                 <input
                   value={draft.projectName}
                   onChange={(e) => updateDraft({ projectName: e.target.value })}
                   placeholder={autoProjectName || 'Auto-generated from Campaign Brief'}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red"
+                  className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-cimb-red/50"
                 />
                 {!draft.projectName && autoProjectName && (
-                  <p className="text-xs text-gray-400 mt-1">Will use: "{autoProjectName}"</p>
+                  <p className="text-xs text-gray-600 mt-1">Will use: "{autoProjectName}"</p>
                 )}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Campaign Brief / Copy <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Campaign Brief / Copy <span className="text-red-400">*</span></label>
                 <textarea
                   value={draft.copy}
                   onChange={(e) => updateDraft({ copy: e.target.value })}
                   rows={3}
                   placeholder="e.g. Ramadan campaign for CIMB Niaga, warm and festive mood, targeting young families"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red"
+                  className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 resize-none focus:outline-none focus:border-cimb-red/50"
                 />
-                <p className="text-xs text-gray-400 mt-0.5">Used as AI generation context only — not rendered in the image.</p>
+                <p className="text-xs text-gray-600 mt-0.5">Used as AI generation context only — not rendered in the image.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Target Segment <span className="text-red-500">*</span></label>
-                  <select value={draft.segment} onChange={(e) => updateDraft({ segment: e.target.value })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red bg-white">
-                    <option value="">Select segment...</option>
-                    {SEGMENTS.map((s) => <option key={s} value={s}>{s}</option>)}
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Target Segment <span className="text-red-400">*</span></label>
+                  <select value={draft.segment} onChange={(e) => updateDraft({ segment: e.target.value })} className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cimb-red/50">
+                    <option value="" className="bg-frnd-dark">Select segment...</option>
+                    {SEGMENTS.map((s) => <option key={s} value={s} className="bg-frnd-dark">{s}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Funnel Stage <span className="text-red-500">*</span></label>
-                  <select value={draft.funnel} onChange={(e) => updateDraft({ funnel: e.target.value as any })} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red bg-white">
-                    <option value="">Select funnel...</option>
-                    {FUNNELS.map((f) => <option key={f} value={f}>{f}</option>)}
+                  <label className="block text-xs font-medium text-gray-400 mb-1">Funnel Stage <span className="text-red-400">*</span></label>
+                  <select value={draft.funnel} onChange={(e) => updateDraft({ funnel: e.target.value as any })} className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-cimb-red/50">
+                    <option value="" className="bg-frnd-dark">Select funnel...</option>
+                    {FUNNELS.map((f) => <option key={f} value={f} className="bg-frnd-dark">{f}</option>)}
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-2">Canvas Orientation <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-medium text-gray-400 mb-2">Canvas Orientation <span className="text-red-400">*</span></label>
                 <div className="flex gap-4">
                   {ORIENTATIONS.map((o) => (
                     <label key={o} className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" 
-                        name="canvasOrientation" 
-                        value={o} 
-                        checked={draft.canvasOrientation === o} 
+                      <input
+                        type="radio"
+                        name="canvasOrientation"
+                        value={o}
+                        checked={draft.canvasOrientation === o}
                         onChange={(e) => updateDraft({ canvasOrientation: e.target.value as any })}
-                        className="text-cimb-red focus:ring-cimb-red"
+                        className="text-cimb-red focus:ring-cimb-red bg-white/10 border-white/20"
                       />
-                      <span className="text-sm text-gray-700">{o}</span>
+                      <span className="text-sm text-gray-300">{o}</span>
                     </label>
                   ))}
                 </div>
               </div>
+
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                    <Wand2 size={11} className="text-gray-400" /> Art Direction <span className="text-gray-400 font-normal">(optional)</span>
+                  <label className="text-xs font-medium text-gray-400 flex items-center gap-1">
+                    <Wand2 size={11} className="text-gray-500" /> Art Direction <span className="text-gray-600 font-normal">(optional)</span>
                   </label>
                   {!showAiSuggestions && (
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowAiSuggestions(true)}
-                      className="text-xs text-cimb-red font-medium hover:text-red-800 flex items-center gap-1"
+                      className="text-xs text-cimb-red font-medium hover:text-red-400 flex items-center gap-1"
                     >
                       <Wand2 size={10} /> Suggest by AI
                     </button>
@@ -396,7 +386,7 @@ export default function AssetConfigPage() {
                   value={draft.artDirection}
                   onChange={(e) => updateDraft({ artDirection: e.target.value.slice(0, 100) })}
                   placeholder="e.g. cinematic, moody, warm tones"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red"
+                  className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-cimb-red/50"
                 />
                 <div className="flex items-start justify-between mt-1.5">
                   <div className="flex-1">
@@ -407,7 +397,7 @@ export default function AssetConfigPage() {
                             key={chip}
                             type="button"
                             onClick={() => appendChip(chip)}
-                            className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full hover:bg-cimb-red/10 hover:text-cimb-red border border-transparent hover:border-cimb-red/20 transition-colors"
+                            className="px-2 py-0.5 text-xs bg-white/10 text-gray-400 rounded-full hover:bg-cimb-red/20 hover:text-cimb-red border border-transparent hover:border-cimb-red/30 transition-colors"
                           >
                             + {chip}
                           </button>
@@ -415,43 +405,41 @@ export default function AssetConfigPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-400 shrink-0 ml-4 pt-1">{draft.artDirection.length}/100</p>
+                  <p className="text-xs text-gray-600 shrink-0 ml-4 pt-1">{draft.artDirection.length}/100</p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right: Brand Identity sidebar */}
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-4">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5 sticky top-4">
             <div className="flex items-center gap-2 mb-3">
-              <Lock size={14} className="text-green-500" />
-              <h3 className="text-sm font-semibold text-gray-900">Brand Identity</h3>
+              <Lock size={14} className="text-green-400" />
+              <h3 className="text-sm font-semibold text-white">Brand Identity</h3>
             </div>
             <div className="text-xs text-gray-500 mb-4">Auto-injected for CIMB Niaga (v3)</div>
             <img src={mockBrandProfileV3.logoUrl} alt="CIMB Logo" className="h-6 mb-4" />
             <div className="space-y-2 mb-4">
               {[mockBrandProfileV3.primaryColor, mockBrandProfileV3.secondaryColor].map((c) => (
                 <div key={c.hex} className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded border border-gray-200 shrink-0" style={{ background: c.hex }} />
-                  <div><p className="text-xs font-medium text-gray-700">{c.name}</p><p className="text-xs text-gray-400">{c.hex}</p></div>
+                  <div className="w-6 h-6 rounded border border-white/10 shrink-0" style={{ background: c.hex }} />
+                  <div><p className="text-xs font-medium text-gray-300">{c.name}</p><p className="text-xs text-gray-600">{c.hex}</p></div>
                 </div>
               ))}
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Approved Fonts</p>
-              {mockBrandProfileV3.fonts.map((f) => <div key={f} className="text-xs text-gray-700 font-medium">{f}</div>)}
+              {mockBrandProfileV3.fonts.map((f) => <div key={f} className="text-xs text-gray-400 font-medium">{f}</div>)}
             </div>
           </div>
 
-          <button onClick={handleLock} className="w-full py-3 bg-cimb-red text-white text-sm font-semibold rounded-xl hover:bg-red-800 transition-colors flex items-center justify-center gap-2">
+          <button onClick={handleLock} className="w-full py-3 bg-cimb-red text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
             <Lock size={16} /> Lock Context & Continue
           </button>
         </div>
       </div>
 
-      {/* DAM Browser Modal */}
       <DAMBrowserModal
         isOpen={isDamModalOpen}
         onClose={() => setIsDamModalOpen(false)}

@@ -64,7 +64,7 @@ function KVStepper({ pathname }: { pathname: string }) {
   }
 
   return (
-    <div className="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-0">
+    <div className="bg-frnd-dark border-b border-white/5 px-6 py-3 flex items-center gap-0">
       {KV_STEPS.map((step, idx) => {
         const isDone = idx < currentIdx
         const isActive = idx === currentIdx
@@ -73,9 +73,9 @@ function KVStepper({ pathname }: { pathname: string }) {
 
         const indicator = (
           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 transition-colors ${
-            isDone  ? 'bg-green-500 text-white' :
+            isDone  ? 'bg-white/20 text-white' :
             isActive ? 'bg-cimb-red text-white' :
-            'bg-gray-200 text-gray-400'
+            'bg-white/5 text-gray-500'
           }`}>
             {isDone ? <Check size={12} /> : idx + 1}
           </div>
@@ -84,16 +84,16 @@ function KVStepper({ pathname }: { pathname: string }) {
         return (
           <div key={step.key} className="flex items-center">
             {/* Step */}
-            <div className={`flex items-center gap-2 px-2 py-1 rounded-lg transition-colors ${isDone && href ? 'cursor-pointer hover:bg-gray-50 group' : ''}`}>
+            <div className={`flex items-center gap-2 px-2 py-1 rounded-lg transition-colors ${isDone && href ? 'cursor-pointer hover:bg-white/5 group' : ''}`}>
               {isDone && href ? (
                 <Link to={href} className="flex items-center gap-2">
                   {indicator}
-                  <span className="text-xs font-medium text-green-600 group-hover:text-green-700 whitespace-nowrap">{step.label}</span>
+                  <span className="text-xs font-medium text-gray-400 group-hover:text-white whitespace-nowrap">{step.label}</span>
                 </Link>
               ) : (
                 <>
                   {indicator}
-                  <span className={`text-xs font-medium whitespace-nowrap ${isActive ? 'text-gray-900' : isFuture ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <span className={`text-xs font-medium whitespace-nowrap ${isActive ? 'text-white' : isFuture ? 'text-gray-600' : 'text-gray-400'}`}>
                     {step.label}
                   </span>
                 </>
@@ -101,7 +101,7 @@ function KVStepper({ pathname }: { pathname: string }) {
             </div>
             {/* Connector */}
             {idx < KV_STEPS.length - 1 && (
-              <div className={`w-10 h-px mx-1 ${idx < currentIdx ? 'bg-green-300' : 'bg-gray-200'}`} />
+              <div className={`w-10 h-px mx-1 ${idx < currentIdx ? 'bg-white/20' : 'bg-white/5'}`} />
             )}
           </div>
         )
@@ -120,19 +120,21 @@ export function AppShell() {
   const isKVFlowStep = getKVStepKey(pathname) !== null
 
   return (
-    <div className="min-h-screen bg-frnd-gray-50 flex flex-col">
+    <div className="min-h-screen bg-frnd-dark flex flex-col">
       {/* Top Nav */}
-      <header className="bg-frnd-dark text-white h-14 flex items-center px-6 gap-6 shrink-0 z-10">
+      <header className="bg-frnd-dark text-white h-14 flex items-center px-6 gap-6 shrink-0 z-10 border-b border-white/5">
         <div className="flex items-center gap-2 font-bold text-base">
           <Layers size={20} className="text-cimb-red" />
           <span>frndOS</span>
+          <span className="text-white/20 mx-1">·</span>
+          <span className="text-gray-500 text-sm font-normal">KV Generator</span>
         </div>
-        <nav className="flex items-center gap-1 ml-4">
-          <Link to="/kv-generator" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${isKVActive ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>
+        <nav className="flex items-center gap-1 ml-6">
+          <Link to="/kv-generator" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${isKVActive ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}>
             <LayoutDashboard size={14} />
-            KV Generator
+            Dashboard
           </Link>
-          <Link to="/kv-generator/templates" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${isTemplatesActive ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}>
+          <Link to="/kv-generator/templates" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${isTemplatesActive ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}>
             <BookTemplate size={14} />
             Templates
           </Link>
@@ -147,11 +149,11 @@ export function AppShell() {
 
       {/* Breadcrumb — shown when not in KV flow steps */}
       {!isKVFlowStep && (
-        <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center gap-1 text-sm text-gray-500">
+        <div className="bg-frnd-dark border-b border-white/5 px-6 py-3 flex items-center gap-1 text-sm">
           {crumbs.map((c, i) => (
             <span key={i} className="flex items-center gap-1">
-              {i > 0 && <ChevronRight size={14} className="text-gray-300" />}
-              {c.to ? <Link to={c.to} className="hover:text-gray-900 transition-colors">{c.label}</Link> : <span className={i === crumbs.length - 1 ? 'text-gray-900 font-medium' : ''}>{c.label}</span>}
+              {i > 0 && <ChevronRight size={14} className="text-white/20" />}
+              {c.to ? <Link to={c.to} className="text-gray-500 hover:text-white transition-colors">{c.label}</Link> : <span className={i === crumbs.length - 1 ? 'text-white font-medium' : 'text-gray-500'}>{c.label}</span>}
             </span>
           ))}
         </div>

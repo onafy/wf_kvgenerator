@@ -14,32 +14,32 @@ import { useExportStore } from '../../store/useExportStore'
 
 // ── Instruction type config ────────────────────────────────────────
 const INSTR_CONFIG: Record<InstructionType, { label: string; color: string; bgColor: string }> = {
-  InPaint:      { label: 'In-Paint',    color: 'text-blue-700',   bgColor: 'bg-blue-100' },
-  Text:         { label: 'Add Text',    color: 'text-violet-700', bgColor: 'bg-violet-100' },
-  Erase:        { label: 'Erase',       color: 'text-red-600',    bgColor: 'bg-red-100' },
-  AssetOverlay: { label: 'Asset',       color: 'text-green-700',  bgColor: 'bg-green-100' },
+  InPaint:      { label: 'In-Paint',    color: 'text-blue-400',   bgColor: 'bg-blue-500/20' },
+  Text:         { label: 'Add Text',    color: 'text-violet-400', bgColor: 'bg-violet-500/20' },
+  Erase:        { label: 'Erase',       color: 'text-red-400',    bgColor: 'bg-red-500/20' },
+  AssetOverlay: { label: 'Asset',       color: 'text-green-400',  bgColor: 'bg-green-500/20' },
 }
 
 // ── SaveTemplateModal ─────────────────────────────────────────────
 function SaveTemplateModal({ onClose, onSave }: { onClose: () => void; onSave: (name: string) => void }) {
   const [name, setName] = useState('')
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+      <div className="bg-frnd-dark rounded-xl shadow-xl p-6 w-full max-w-md mx-4 border border-white/10">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-900">Save as Template</h3>
-          <button onClick={onClose}><X size={18} className="text-gray-400" /></button>
+          <h3 className="font-semibold text-white">Save as Template</h3>
+          <button onClick={onClose}><X size={18} className="text-gray-500" /></button>
         </div>
         <div className="space-y-4 mb-6">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Template Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Master KV — Ramadan Layout" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red" />
+            <label className="block text-xs font-medium text-gray-400 mb-1">Template Name</label>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Master KV — Ramadan Layout" className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-cimb-red/50" />
           </div>
-          <p className="text-xs text-gray-400">Saved from: KV Generator · Visible in Template Library</p>
+          <p className="text-xs text-gray-600">Saved from: KV Generator · Visible in Template Library</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
-          <button onClick={() => { if (name.trim()) { onSave(name); onClose() } }} disabled={!name.trim()} className="flex-1 py-2.5 text-sm font-medium text-white bg-cimb-red rounded-lg hover:bg-red-800 disabled:opacity-50">
+          <button onClick={onClose} className="flex-1 py-2.5 text-sm text-gray-400 bg-white/5 rounded-lg hover:bg-white/10">Cancel</button>
+          <button onClick={() => { if (name.trim()) { onSave(name); onClose() } }} disabled={!name.trim()} className="flex-1 py-2.5 text-sm font-medium text-white bg-cimb-red rounded-lg hover:bg-red-700 disabled:opacity-50">
             Save Template
           </button>
         </div>
@@ -53,24 +53,24 @@ function VersionPanel({ projectId, onClose }: { projectId: string; onClose: () =
   const { getVersions } = useVersionStore()
   const versions = getVersions(projectId)
   return (
-    <div className="absolute inset-y-0 right-0 w-72 bg-white border-l border-gray-200 flex flex-col z-20 shadow-xl">
-      <div className="flex items-center justify-between p-4 border-b border-gray-100">
-        <h3 className="font-semibold text-gray-900 text-sm">Version History</h3>
-        <button onClick={onClose}><X size={16} className="text-gray-400" /></button>
+    <div className="absolute inset-y-0 right-0 w-72 bg-frnd-dark border-l border-white/10 flex flex-col z-20">
+      <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <h3 className="font-semibold text-white text-sm">Version History</h3>
+        <button onClick={onClose}><X size={16} className="text-gray-500" /></button>
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {versions.length === 0 ? (
-          <p className="text-xs text-gray-400 text-center py-8">No versions yet</p>
+          <p className="text-xs text-gray-600 text-center py-8">No versions yet</p>
         ) : (
           [...versions].reverse().map((v) => (
-            <div key={v.id} className={`p-3 rounded-lg border ${v.versionNumber === versions.length ? 'border-cimb-red bg-red-50' : 'border-gray-100 bg-gray-50'}`}>
+            <div key={v.id} className={`p-3 rounded-lg border ${v.versionNumber === versions.length ? 'border-cimb-red bg-cimb-red/10' : 'border-white/10 bg-white/5'}`}>
               <div className="flex items-center justify-between mb-1.5">
-                <span className={`text-xs font-semibold ${v.versionNumber === versions.length ? 'text-cimb-red' : 'text-gray-700'}`}>v{v.versionNumber}</span>
-                {v.isGeneratedWithPreviousContext && <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">Prev. context</span>}
+                <span className={`text-xs font-semibold ${v.versionNumber === versions.length ? 'text-cimb-red' : 'text-gray-400'}`}>v{v.versionNumber}</span>
+                {v.isGeneratedWithPreviousContext && <span className="text-xs bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full">Prev. context</span>}
               </div>
               <img src={v.thumbnailUrl} alt="" className="w-full aspect-video object-cover rounded mb-2" />
               <p className="text-xs text-gray-500 line-clamp-2">{v.promptSummary}</p>
-              <p className="text-xs text-gray-400 mt-1">{new Date(v.createdAt).toLocaleString('id-ID')}</p>
+              <p className="text-xs text-gray-600 mt-1">{new Date(v.createdAt).toLocaleString('id-ID')}</p>
             </div>
           ))
         )}
@@ -89,15 +89,15 @@ function InstructionRow({ instr, isActive, onActivate, onRemove, onUpdate, dimme
   return (
     <div
       onClick={onActivate}
-      className={`p-2.5 rounded-lg border cursor-pointer transition-all ${isActive ? 'border-cimb-red bg-red-50' : dimmed ? 'border-gray-100 bg-gray-50 opacity-60' : 'border-gray-100 bg-white hover:border-gray-200'}`}
+      className={`p-2.5 rounded-lg border cursor-pointer transition-all ${isActive ? 'border-cimb-red bg-cimb-red/10' : dimmed ? 'border-white/5 bg-white/5 opacity-60' : 'border-white/10 bg-white/5 hover:border-white/30'}`}
     >
       <div className="flex items-start gap-2">
-        {!dimmed && <GripVertical size={12} className="text-gray-300 mt-0.5 shrink-0" />}
+        {!dimmed && <GripVertical size={12} className="text-gray-600 mt-0.5 shrink-0" />}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1">
             <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${cfg.bgColor} ${cfg.color}`}>{cfg.label}</span>
-            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${instr.status === 'Staged' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>{instr.status}</span>
-            {instr.isStatic && <Lock size={10} className="text-violet-500" />}
+            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${instr.status === 'Staged' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-gray-500'}`}>{instr.status}</span>
+            {instr.isStatic && <Lock size={10} className="text-violet-400" />}
           </div>
           {editing ? (
             <input
@@ -106,22 +106,22 @@ function InstructionRow({ instr, isActive, onActivate, onRemove, onUpdate, dimme
               onChange={(e) => onUpdate({ prompt: e.target.value })}
               onBlur={() => setEditing(false)}
               onClick={(e) => e.stopPropagation()}
-              className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-cimb-red"
+              className="w-full text-xs bg-white/5 border border-white/20 rounded px-2 py-1 text-white focus:outline-none focus:border-cimb-red/50"
             />
           ) : (
-            <p className="text-xs text-gray-600 line-clamp-2">{instr.prompt || <span className="text-gray-300 italic">No prompt yet</span>}</p>
+            <p className="text-xs text-gray-400 line-clamp-2">{instr.prompt || <span className="text-gray-600 italic">No prompt yet</span>}</p>
           )}
           {instr.type === 'Text' && instr.content && (
-            <p className="text-xs text-gray-400 mt-0.5 truncate">"{instr.content}"</p>
+            <p className="text-xs text-gray-500 mt-0.5 truncate">"{instr.content}"</p>
           )}
         </div>
         <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           {!dimmed && (
-            <button onClick={() => setEditing(!editing)} className="p-1 text-gray-400 hover:text-gray-700 rounded">
+            <button onClick={() => setEditing(!editing)} className="p-1 text-gray-500 hover:text-white rounded">
               <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M8.5 1.5L10.5 3.5L4 10H2V8L8.5 1.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/></svg>
             </button>
           )}
-          <button onClick={onRemove} className="p-1 text-gray-400 hover:text-red-500 rounded">
+          <button onClick={onRemove} className="p-1 text-gray-500 hover:text-red-400 rounded">
             <X size={11} />
           </button>
         </div>
@@ -138,39 +138,39 @@ function InstructionQueuePanel({ onRegenerate, onApproveDownload, onApproveResiz
   const executed = instructions.filter((i) => i.status === 'Executed')
 
   return (
-    <div className="w-72 bg-white border-l border-gray-200 flex flex-col shrink-0">
-      <div className="p-4 border-b border-gray-100">
+    <div className="w-72 bg-frnd-dark border-l border-white/10 flex flex-col shrink-0">
+      <div className="p-4 border-b border-white/10">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">Instruction Queue</h3>
+          <h3 className="text-sm font-semibold text-white">Instruction Queue</h3>
           {staged.length > 0 && (
-            <button onClick={clearStaged} className="text-xs text-red-400 hover:text-red-600">Clear staged</button>
+            <button onClick={clearStaged} className="text-xs text-red-400 hover:text-red-300">Clear staged</button>
           )}
         </div>
-        <p className="text-xs text-gray-400 mt-0.5">{staged.length} staged · {executed.length} executed</p>
+        <p className="text-xs text-gray-500 mt-0.5">{staged.length} staged · {executed.length} executed</p>
       </div>
 
       {staged.length > 10 && (
-        <div className="mx-3 mt-3 bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center gap-2 text-xs text-amber-700">
+        <div className="mx-3 mt-3 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 flex items-center gap-2 text-xs text-amber-400">
           <AlertTriangle size={12} /> More than 10 instructions — consider splitting into multiple jobs.
         </div>
       )}
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {instructions.length === 0 ? (
-          <div className="text-center py-10 text-gray-400">
+          <div className="text-center py-10 text-gray-600">
             <Sparkles size={24} className="mx-auto mb-2 opacity-30" />
             <p className="text-xs">Draw a mask or use a tool to add instructions</p>
           </div>
         ) : (
           <>
             {staged.length > 0 && (
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 pt-1">Staged</div>
+              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider px-1 pt-1">Staged</div>
             )}
             {staged.map((instr) => (
               <InstructionRow key={instr.id} instr={instr} isActive={activeInstructionId === instr.id} onActivate={() => setActiveInstruction(instr.id)} onRemove={() => removeInstruction(instr.id)} onUpdate={(patch) => updateInstruction(instr.id, patch)} />
             ))}
             {executed.length > 0 && (
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-1 pt-2">Executed</div>
+              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider px-1 pt-2">Executed</div>
             )}
             {executed.map((instr) => (
               <InstructionRow key={instr.id} instr={instr} isActive={false} onActivate={() => {}} onRemove={() => removeInstruction(instr.id)} onUpdate={() => {}} dimmed />
@@ -180,14 +180,14 @@ function InstructionQueuePanel({ onRegenerate, onApproveDownload, onApproveResiz
       </div>
 
       {/* Actions */}
-      <div className="p-3 border-t border-gray-100 space-y-2">
+      <div className="p-3 border-t border-white/10 space-y-2">
         {isRegenerating ? (
           <div>
-            <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+            <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
               <Loader2 size={12} className="animate-spin text-cimb-red" />
               <span>Processing instructions... {Math.round(regenProgress)}%</span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-1.5">
+            <div className="w-full bg-white/10 rounded-full h-1.5">
               <div className="bg-cimb-red h-1.5 rounded-full transition-all" style={{ width: `${regenProgress}%` }} />
             </div>
           </div>
@@ -195,23 +195,22 @@ function InstructionQueuePanel({ onRegenerate, onApproveDownload, onApproveResiz
           <button
             onClick={onRegenerate}
             disabled={staged.length === 0 || !session.sourceImageUrl}
-            className="w-full py-2.5 bg-cimb-red text-white text-sm font-semibold rounded-xl hover:bg-red-800 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-cimb-red text-white text-sm font-semibold rounded-xl hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <Sparkles size={14} /> Regenerate ({staged.length})
           </button>
         )}
-        {/* PRD v1.2 9.D: Two explicit choices — no auto-routing */}
-        <div className="pt-1 border-t border-gray-100 space-y-1.5">
-          <p className="text-xs text-gray-400 font-medium mb-1">Approve & Export</p>
+        <div className="pt-1 border-t border-white/10 space-y-1.5">
+          <p className="text-xs text-gray-500 font-medium mb-1">Approve & Export</p>
           <button
             onClick={onApproveDownload}
-            className="w-full py-2 bg-white border border-gray-200 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-50 flex items-center justify-center gap-1.5"
+            className="w-full py-2 bg-white/10 border border-white/20 text-gray-300 text-xs font-medium rounded-lg hover:bg-white/20 flex items-center justify-center gap-1.5"
           >
             <Download size={12} /> Download as-is
           </button>
           <button
             onClick={onApproveResize}
-            className="w-full py-2 bg-cimb-red text-white text-xs font-medium rounded-lg hover:bg-red-800 flex items-center justify-center gap-1.5"
+            className="w-full py-2 bg-cimb-red text-white text-xs font-medium rounded-lg hover:bg-red-700 flex items-center justify-center gap-1.5"
           >
             <Maximize2 size={12} /> Export & Resize for platforms
           </button>
@@ -230,41 +229,41 @@ function InlinePromptInput({ type, onConfirm, onCancel }: {
   const [fillHint, setFillHint] = useState('')
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 z-30">
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-80 bg-frnd-dark rounded-xl shadow-2xl border border-white/10 p-4 z-30">
       <div className="flex items-center justify-between mb-3">
         <span className={`text-xs px-2 py-0.5 rounded font-medium ${INSTR_CONFIG[type].bgColor} ${INSTR_CONFIG[type].color}`}>{INSTR_CONFIG[type].label}</span>
-        <button onClick={onCancel}><X size={14} className="text-gray-400" /></button>
+        <button onClick={onCancel}><X size={14} className="text-gray-500" /></button>
       </div>
 
       {type === 'Text' && (
         <div className="mb-2">
           <label className="block text-xs text-gray-500 mb-1">Text content</label>
-          <input value={content} onChange={(e) => setContent(e.target.value)} placeholder='What should the text say?' className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-cimb-red mb-2" autoFocus />
+          <input value={content} onChange={(e) => setContent(e.target.value)} placeholder='What should the text say?' className="w-full px-2 py-1.5 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-cimb-red/50 mb-2" autoFocus />
           <label className="block text-xs text-gray-500 mb-1">Style prompt</label>
-          <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder='e.g. bold white sans-serif, top-center' className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-cimb-red" />
+          <input value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder='e.g. bold white sans-serif, top-center' className="w-full px-2 py-1.5 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-cimb-red/50" />
         </div>
       )}
 
       {type === 'Erase' && (
         <div className="mb-2">
           <label className="block text-xs text-gray-500 mb-1">Optional fill hint</label>
-          <input value={fillHint} onChange={(e) => setFillHint(e.target.value)} placeholder='e.g. fill with blue gradient background' className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-cimb-red" autoFocus />
-          <p className="text-xs text-gray-400 mt-1">Leave blank for content-aware deletion</p>
+          <input value={fillHint} onChange={(e) => setFillHint(e.target.value)} placeholder='e.g. fill with blue gradient background' className="w-full px-2 py-1.5 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-cimb-red/50" autoFocus />
+          <p className="text-xs text-gray-600 mt-1">Leave blank for content-aware deletion</p>
         </div>
       )}
 
       {(type === 'InPaint' || type === 'AssetOverlay') && (
         <div className="mb-2">
           <label className="block text-xs text-gray-500 mb-1">{type === 'InPaint' ? 'Prompt for this region' : 'Blend instruction'}</label>
-          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={2} placeholder={type === 'InPaint' ? 'e.g. replace with warm sunset gradient' : 'e.g. blend naturally as product showcase'} className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:border-cimb-red" autoFocus />
+          <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={2} placeholder={type === 'InPaint' ? 'e.g. replace with warm sunset gradient' : 'e.g. blend naturally as product showcase'} className="w-full px-2 py-1.5 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 resize-none focus:outline-none focus:border-cimb-red/50" autoFocus />
         </div>
       )}
 
       <div className="flex gap-2 mt-3">
-        <button onClick={onCancel} className="flex-1 py-1.5 text-xs text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200">Cancel</button>
+        <button onClick={onCancel} className="flex-1 py-1.5 text-xs text-gray-400 bg-white/10 rounded-lg hover:bg-white/20">Cancel</button>
         <button
           onClick={() => (type === 'Text' ? content.trim() : type === 'Erase' ? true : prompt.trim()) && onConfirm({ prompt, content, fillHint })}
-          className="flex-1 py-1.5 text-xs font-medium text-white bg-cimb-red rounded-lg hover:bg-red-800"
+          className="flex-1 py-1.5 text-xs font-medium text-white bg-cimb-red rounded-lg hover:bg-red-700"
         >
           Add to Queue
         </button>
@@ -310,7 +309,6 @@ export default function EditorPage() {
   const variants = getVariants(effectiveProjectId)
   const activeVariant = variants[variants.length - 1] || variants[0]
 
-  // Sync active variant image into image editor store (brand always on in KV Generator)
   useEffect(() => {
     if (activeVariant?.thumbnailUrl && session.sourceImageUrl !== activeVariant.thumbnailUrl) {
       resetSession()
@@ -321,12 +319,11 @@ export default function EditorPage() {
 
   const currentImage = activeVariant?.thumbnailUrl || session.sourceImageUrl
 
-  // PRD v1.2: KV Generator Sub-D uses Rectangle (Bounding Box) + Freehand/Lasso only
   const maskTools: MaskShape[] = ['rectangle', 'freehand']
   const MASK_TOOL_ICONS: Record<MaskShape, React.ReactNode> = {
     rectangle: <Square size={15} />,
-    ellipse: <Square size={15} />, // unused in KV Generator
-    polygon: <Square size={15} />, // unused in KV Generator
+    ellipse: <Square size={15} />,
+    polygon: <Square size={15} />,
     freehand: <Lasso size={15} />,
   }
 
@@ -414,7 +411,6 @@ export default function EditorPage() {
     }, 150)
   }
 
-  // PRD v1.2 9.D: Approve shows two explicit choices — Download or Export & Resize
   const handleApproveDownload = () => {
     updateProjectStatus(effectiveProjectId, 'Exported')
     navigate(`/kv-generator/projects/${effectiveProjectId}/export?intent=original`)
@@ -422,7 +418,6 @@ export default function EditorPage() {
 
   const handleApproveResize = () => {
     updateProjectStatus(effectiveProjectId, 'Exported')
-    // Clear previous dimension selections so user starts fresh
     setSelectedDimIds([])
     navigate(`/kv-generator/projects/${effectiveProjectId}/export?intent=resize`)
   }
@@ -440,7 +435,7 @@ export default function EditorPage() {
   return (
     <div className="flex h-[calc(100vh-7rem)] overflow-hidden">
       {/* Left Toolbar */}
-      <div className="w-14 bg-frnd-dark flex flex-col items-center py-3 gap-1 shrink-0">
+      <div className="w-14 bg-frnd-dark flex flex-col items-center py-3 gap-1 shrink-0 border-r border-white/10">
         {toolGroups.map((grp, gi) => (
           <div key={gi} className="w-full flex flex-col items-center gap-1">
             {gi > 0 && <div className="w-8 h-px bg-white/10 my-1" />}
@@ -449,7 +444,7 @@ export default function EditorPage() {
                 key={t.id}
                 onClick={() => setActiveTool(t.id === activeTool ? null : t.id as any)}
                 title={t.tip}
-                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${activeTool === t.id ? 'bg-cimb-red text-white' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${activeTool === t.id ? 'bg-cimb-red text-white' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
               >
                 {t.icon}
               </button>
@@ -458,28 +453,28 @@ export default function EditorPage() {
         ))}
         <div className="flex-1" />
         <div className="w-8 h-px bg-white/10 my-1" />
-        <button onClick={() => {}} title="Undo" className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10"><Undo2 size={15} /></button>
-        <button onClick={() => {}} title="Redo" className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10"><Redo2 size={15} /></button>
-        <button onClick={() => setShowHistory(!showHistory)} title="Version History" className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${showHistory ? 'bg-cimb-red text-white' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+        <button onClick={() => {}} title="Undo" className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10"><Undo2 size={15} /></button>
+        <button onClick={() => {}} title="Redo" className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10"><Redo2 size={15} /></button>
+        <button onClick={() => setShowHistory(!showHistory)} title="Version History" className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${showHistory ? 'bg-cimb-red text-white' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}>
           <History size={15} />
         </button>
       </div>
 
       {/* Canvas area */}
-      <div className="flex-1 bg-gray-100 flex flex-col overflow-hidden">
+      <div className="flex-1 bg-black flex flex-col overflow-hidden">
         {/* Canvas topbar */}
-        <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-full text-xs text-green-700 font-medium">
+        <div className="bg-frnd-dark border-b border-white/10 px-4 py-2 flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-xs text-green-400 font-medium">
             <Lock size={10} /> CIMB Brand Active
           </div>
-          <span className="text-xs text-gray-400">v{session.versions.length} · {session.versions.length === 1 ? 'Original' : 'Edited'}</span>
+          <span className="text-xs text-gray-600">v{session.versions.length} · {session.versions.length === 1 ? 'Original' : 'Edited'}</span>
           <div className="flex-1" />
           {activeTool && (
             <span className="text-xs text-cimb-red font-medium capitalize">
               {activeTool === 'move' ? 'Select / Move' : activeTool === 'text' ? 'Add Text' : activeTool === 'erase' ? 'Erase Region' : activeTool === 'overlay' ? 'Asset Overlay' : `${activeTool} mask`} tool active
             </span>
           )}
-          <button onClick={() => setShowSaveTemplate(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50">
+          <button onClick={() => setShowSaveTemplate(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all">
             <Save size={12} /> Save Template
           </button>
         </div>
@@ -487,7 +482,7 @@ export default function EditorPage() {
         {/* Canvas */}
         <div className="flex-1 flex items-center justify-center p-6 relative overflow-hidden">
           {isRegenerating && (
-            <div className="absolute inset-0 bg-black/60 z-10 flex flex-col items-center justify-center">
+            <div className="absolute inset-0 bg-black/80 z-10 flex flex-col items-center justify-center">
               <Loader2 size={36} className="text-white animate-spin mb-4" />
               <p className="text-white font-medium mb-3">Executing instruction queue...</p>
               <div className="w-64 bg-white/20 rounded-full h-2">
@@ -499,7 +494,7 @@ export default function EditorPage() {
 
           <div
             ref={canvasRef}
-            className={`relative bg-white shadow-2xl rounded overflow-hidden select-none ${activeTool && activeTool !== 'move' ? 'cursor-crosshair' : 'cursor-default'}`}
+            className={`relative bg-black shadow-2xl rounded overflow-hidden select-none ${activeTool && activeTool !== 'move' ? 'cursor-crosshair' : 'cursor-default'}`}
             style={{ width: 'min(65vh, 560px)', height: 'min(65vh, 560px)' }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -536,9 +531,9 @@ export default function EditorPage() {
             )}
 
             {/* Brand locked element */}
-            <div className="absolute bottom-3 right-3 bg-white/90 rounded px-2 py-1 flex items-center gap-1 shadow">
+            <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded px-2 py-1 flex items-center gap-1">
               <Lock size={10} className="text-cimb-red" />
-              <span className="text-xs text-gray-600 font-medium">CIMB Logo locked</span>
+              <span className="text-xs text-gray-300 font-medium">CIMB Logo locked</span>
             </div>
           </div>
 
@@ -553,7 +548,7 @@ export default function EditorPage() {
 
           {/* Tool hint */}
           {activeTool && !showInlinePrompt && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-frnd-dark text-white text-xs px-3 py-2 rounded-full pointer-events-none">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-frnd-dark text-white text-xs px-3 py-2 rounded-full pointer-events-none border border-white/10">
               {maskTools.includes(activeTool as MaskShape) && 'Click and drag to draw mask'}
               {activeTool === 'text' && 'Click canvas to place text'}
               {activeTool === 'erase' && 'Draw over region to erase'}
@@ -565,7 +560,7 @@ export default function EditorPage() {
         </div>
       </div>
 
-      {/* Right: Instruction Queue Panel (KV Generator-specific: includes Approve & Export) */}
+      {/* Right: Instruction Queue Panel */}
       <InstructionQueuePanel onRegenerate={handleRegenerate} onApproveDownload={handleApproveDownload} onApproveResize={handleApproveResize} />
 
       {showSaveTemplate && (
