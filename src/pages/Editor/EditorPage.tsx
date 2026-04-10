@@ -3,14 +3,32 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
   Square, Lasso, Type, Eraser, Image as ImageIcon,
   MousePointer2, Undo2, Redo2, History, Lock, Save,
-  Sparkles, Loader2, X, GripVertical, AlertTriangle, Download, Maximize2
+  Sparkles, Loader2, X, Maximize2,
+  ArrowLeft, Upload, BookOpen, Plus, Download, Layers,
+  Pencil,
 } from 'lucide-react'
+
+// ── Canvas Asset ────────────────────────────────────────────────
+interface CanvasAsset {
+  id: string
+  name: string
+  url: string
+  thumbnailUrl: string
+  x: number
+  y: number
+  w: number
+  h: number
+  rotation: number
+  prompt: string
+}
 import { useImageEditorStore, type Instruction, type InstructionType, type MaskShape } from '../../store/useImageEditorStore'
 import { useVersionStore } from '../../store/useVersionStore'
 import { useGenerationStore } from '../../store/useGenerationStore'
 import { useProjectStore } from '../../store/useProjectStore'
 import { useTemplateStore } from '../../store/useTemplateStore'
 import { useExportStore } from '../../store/useExportStore'
+import { useContextStore } from '../../store/useContextStore'
+import { DAMBrowserModal } from '../../components/shared/DAMBrowserModal'
 
 // ── Instruction type config ────────────────────────────────────────
 const INSTR_CONFIG: Record<InstructionType, { label: string; color: string; bgColor: string }> = {
@@ -21,26 +39,142 @@ const INSTR_CONFIG: Record<InstructionType, { label: string; color: string; bgCo
 }
 
 // ── SaveTemplateModal ─────────────────────────────────────────────
-function SaveTemplateModal({ onClose, onSave }: { onClose: () => void; onSave: (name: string) => void }) {
+function SaveTemplateModal({
+  onClose,
+  onSave,
+  previewImageUrl,
+  canvasSize = '1080 × 1080 px',
+}: {
+  onClose: () => void
+  onSave: (name: string, description: string) => void
+  previewImageUrl?: string
+  canvasSize?: string
+}) {
   const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [state, setState] = useState<'idle' | 'saving' | 'success' | 'error'>('idle')
+
+  const handleSave = async () => {
+    if (!name.trim()) return
+    setState('saving')
+    try {
+      await onSave(name, description)
+      setState('success')
+      setTimeout(() => {
+        onClose()
+      }, 1500)
+    } catch {
+      setState('error')
+      setTimeout(() => setState('idle'), 2500)
+    }
+  }
+
+  if (state === 'success') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="bg-frnd-dark rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 border border-green-500/30 flex flex-col items-center">
+          <div className="w-14 h-14 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center mb-4">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </div>
+          <p className="text-base font-semibold text-white mb-1">Template Saved</p>
+          <p className="text-xs text-white/40 text-center">"{name}" saved to your template library</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (state === 'error') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="bg-frnd-dark rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 border border-red-500/30 flex flex-col items-center">
+          <div className="w-14 h-14 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center mb-4">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <p className="text-base font-semibold text-white mb-1">Failed to save template</p>
+          <p className="text-xs text-white/40 text-center">Please try again or check your connection</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <div className="bg-frnd-dark rounded-xl shadow-xl p-6 w-full max-w-md mx-4 border border-white/10">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-frnd-dark rounded-2xl shadow-2xl w-full max-w-md mx-4 border border-white/10 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
           <h3 className="font-semibold text-white">Save as Template</h3>
-          <button onClick={onClose}><X size={18} className="text-gray-500" /></button>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors">
+            <X size={16} />
+          </button>
         </div>
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">Template Name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Master KV — Ramadan Layout" className="w-full px-3 py-2 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-cimb-red/50" />
+
+        {/* Preview thumbnail */}
+        <div className="flex justify-center bg-black/20 py-5 border-b border-white/10">
+          <div className="w-24 h-24 rounded-xl overflow-hidden bg-black/40 border border-white/10 shadow-inner">
+            {previewImageUrl ? (
+              <img src={previewImageUrl} alt="Template preview" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-10 h-10 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21,15 16,10 5,21" />
+                  </svg>
+                </div>
+              </div>
+            )}
           </div>
-          <p className="text-xs text-gray-600">Saved from: KV Generator · Visible in Template Library</p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 text-sm text-gray-400 bg-white/5 rounded-lg hover:bg-white/10">Cancel</button>
-          <button onClick={() => { if (name.trim()) { onSave(name); onClose() } }} disabled={!name.trim()} className="flex-1 py-2.5 text-sm font-medium text-white bg-cimb-red rounded-lg hover:bg-red-700 disabled:opacity-50">
-            Save Template
+
+        {/* Form fields */}
+        <div className="px-5 py-5 space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-white/40 mb-1.5 uppercase tracking-wider">Template Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Master KV — Ramadan Layout"
+              className="w-full px-3 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-all"
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-white/40 mb-1.5 uppercase tracking-wider">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              placeholder="Describe the template style, mood, or use case..."
+              className="w-full px-3 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/20 resize-none focus:outline-none focus:border-white/30 transition-all"
+            />
+          </div>
+          <div className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/[0.03] border border-white/5">
+            <span className="text-xs text-white/40">Canvas Size</span>
+            <span className="text-xs font-medium text-white/70">{canvasSize}</span>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 pb-5 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 text-sm text-white/50 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:text-white transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!name.trim() || state === 'saving'}
+            className="flex-1 py-2.5 text-sm font-semibold text-gray-900 bg-white rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {state === 'saving' ? 'Saving...' : 'Save Template'}
           </button>
         </div>
       </div>
@@ -79,50 +213,169 @@ function VersionPanel({ projectId, onClose }: { projectId: string; onClose: () =
   )
 }
 
-// ── InstructionRow ─────────────────────────────────────────────────
-function InstructionRow({ instr, isActive, onActivate, onRemove, onUpdate, dimmed }: {
-  instr: Instruction; isActive: boolean; onActivate: () => void; onRemove: () => void
-  onUpdate: (patch: Partial<Instruction>) => void; dimmed?: boolean
+// ── Canvas Items Panel ─────────────────────────────────────────────
+function CanvasItemsPanel({
+  sourceImageUrl,
+  instructions,
+  canvasAssets,
+  onRemoveInstruction,
+  onRemoveSource,
+  onRemoveCanvasAsset,
+  onEditInstruction,
+}: {
+  sourceImageUrl: string | null
+  instructions: Instruction[]
+  canvasAssets: CanvasAsset[]
+  onRemoveInstruction: (id: string) => void
+  onRemoveSource: () => void
+  onRemoveCanvasAsset: (id: string) => void
+  onEditInstruction?: (id: string) => void
 }) {
-  const cfg = INSTR_CONFIG[instr.type]
-  const [editing, setEditing] = useState(false)
+  const total = (sourceImageUrl ? 1 : 0) + instructions.length + canvasAssets.length
+
   return (
-    <div
-      onClick={onActivate}
-      className={`p-2.5 rounded-lg border cursor-pointer transition-all ${isActive ? 'border-cimb-red bg-cimb-red/10' : dimmed ? 'border-white/5 bg-white/5 opacity-60' : 'border-white/10 bg-white/5 hover:border-white/30'}`}
-    >
-      <div className="flex items-start gap-2">
-        {!dimmed && <GripVertical size={12} className="text-gray-600 mt-0.5 shrink-0" />}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${cfg.bgColor} ${cfg.color}`}>{cfg.label}</span>
-            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${instr.status === 'Staged' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/10 text-gray-500'}`}>{instr.status}</span>
-            {instr.isStatic && <Lock size={10} className="text-violet-400" />}
-          </div>
-          {editing ? (
-            <input
-              autoFocus
-              value={instr.prompt}
-              onChange={(e) => onUpdate({ prompt: e.target.value })}
-              onBlur={() => setEditing(false)}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full text-xs bg-white/5 border border-white/20 rounded px-2 py-1 text-white focus:outline-none focus:border-cimb-red/50"
-            />
-          ) : (
-            <p className="text-xs text-gray-400 line-clamp-2">{instr.prompt || <span className="text-gray-600 italic">No prompt yet</span>}</p>
-          )}
-          {instr.type === 'Text' && instr.content && (
-            <p className="text-xs text-gray-500 mt-0.5 truncate">"{instr.content}"</p>
-          )}
+    <div className="w-56 bg-[#0f0f0f] border-r border-white/[0.07] flex flex-col shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.07]">
+        <div>
+          <span className="text-xs font-semibold text-white">Canvas Items</span>
+          <span className="text-[10px] text-white/30 block mt-0.5">{total} on canvas</span>
         </div>
-        <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-          {!dimmed && (
-            <button onClick={() => setEditing(!editing)} className="p-1 text-gray-500 hover:text-white rounded">
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M8.5 1.5L10.5 3.5L4 10H2V8L8.5 1.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/></svg>
+        <button className="w-6 h-6 rounded-md bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors">
+          <Plus size={13} />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        {/* Source image item */}
+        {sourceImageUrl && (
+          <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/[0.06] border border-white/10 group">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-black/40 shrink-0">
+              <img src={sourceImageUrl} alt="source" className="w-full h-full object-cover" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium text-white/80 truncate leading-tight">
+                {sourceImageUrl.split('/').pop()?.split('?')[0]?.slice(0, 22) || 'image.jpeg'}
+              </p>
+              <p className="text-[10px] text-white/30 mt-0.5">0° · drag to move</p>
+            </div>
+            <button
+              onClick={onRemoveSource}
+              className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/70 transition-all mt-0.5 shrink-0"
+            >
+              <X size={12} />
             </button>
-          )}
-          <button onClick={onRemove} className="p-1 text-gray-500 hover:text-red-400 rounded">
-            <X size={11} />
+          </div>
+        )}
+
+        {/* All instruction items */}
+        {instructions.map((instr) => (
+          <div key={instr.id} className="flex items-start gap-2 p-2 rounded-xl bg-white/[0.06] border border-white/10 group">
+            <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0 mt-1.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium text-white/80 truncate leading-tight">
+                {instr.content ? `"${instr.content.slice(0, 20)}"` : instr.label || instr.type}
+              </p>
+              <p className="text-[10px] text-white/30 mt-0.5 truncate">
+                {instr.prompt || 'no prompt'}
+              </p>
+            </div>
+            {/* Edit prompt button */}
+            {onEditInstruction && (
+              <button
+                onClick={() => onEditInstruction(instr.id)}
+                className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-cyan-400 transition-all mt-0.5 shrink-0"
+                title="Edit prompt"
+              >
+                <Pencil size={11} />
+              </button>
+            )}
+            <button
+              onClick={() => onRemoveInstruction(instr.id)}
+              className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/70 transition-all mt-0.5 shrink-0"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ))}
+
+        {/* Canvas asset items */}
+        {canvasAssets.map((ca) => (
+          <div key={ca.id} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/[0.06] border border-cyan-500/20 group">
+            <div className="w-8 h-8 rounded-lg overflow-hidden bg-black/40 shrink-0">
+              <img src={ca.thumbnailUrl || ca.url} alt={ca.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium text-white/80 truncate leading-tight">{ca.name}</p>
+              <p className="text-[10px] text-white/30 mt-0.5 truncate">
+                {ca.prompt ? `"${ca.prompt.slice(0, 24)}"` : `${Math.round(ca.rotation)}° rotation`}
+              </p>
+            </div>
+            <button
+              onClick={() => onRemoveCanvasAsset(ca.id)}
+              className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-white/70 transition-all mt-0.5 shrink-0"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ))}
+
+        {total === 0 && (
+          <p className="text-[11px] text-white/25 text-center py-8">No items on canvas</p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Add Asset Panel ────────────────────────────────────────────────
+function AddAssetPanel({ onClose, onUpload, onBrowseDAM }: { onClose: () => void; onUpload: (url: string, name: string) => void; onBrowseDAM: () => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const url = URL.createObjectURL(file)
+      onUpload(url, file.name)
+    }
+  }
+
+  return (
+    <div className="w-56 bg-[#0f0f0f] flex flex-col shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.07]">
+        <span className="text-xs font-semibold text-white">Add Asset</span>
+        <button onClick={onClose} className="text-white/30 hover:text-white/60 transition-colors">
+          <X size={14} />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+        {/* Upload file */}
+        <div>
+          <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-2">Upload File</p>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full aspect-[4/3] border border-dashed border-white/15 rounded-xl flex flex-col items-center justify-center gap-2 hover:border-white/30 hover:bg-white/[0.03] transition-all group"
+          >
+            <Upload size={20} className="text-white/25 group-hover:text-white/50 transition-colors" />
+            <div className="text-center">
+              <p className="text-[11px] text-white/40 font-medium">Click to upload image</p>
+              <p className="text-[10px] text-white/20 mt-0.5">PNG, JPG, SVG, WebP</p>
+            </div>
+          </button>
+        </div>
+
+        {/* From library */}
+        <div>
+          <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-2">From Library</p>
+          <button onClick={onBrowseDAM} className="w-full flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.07] hover:border-white/10 transition-all text-left">
+            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+              <BookOpen size={15} className="text-white/40" />
+            </div>
+            <div>
+              <p className="text-[11px] font-medium text-white/70">Browse DAM</p>
+              <p className="text-[10px] text-white/30 mt-0.5">Select from asset library</p>
+            </div>
           </button>
         </div>
       </div>
@@ -130,106 +383,78 @@ function InstructionRow({ instr, isActive, onActivate, onRemove, onUpdate, dimme
   )
 }
 
-// ── Instruction Queue Panel ────────────────────────────────────────
-function InstructionQueuePanel({ onRegenerate, onApproveDownload, onApproveResize }: { onRegenerate: () => void; onApproveDownload: () => void; onApproveResize: () => void }) {
-  const { instructions, activeInstructionId, setActiveInstruction, removeInstruction, updateInstruction, clearStaged, isRegenerating, regenProgress, session } = useImageEditorStore()
-
-  const staged = instructions.filter((i) => i.status === 'Staged')
-  const executed = instructions.filter((i) => i.status === 'Executed')
+// ── Template Picker Panel ─────────────────────────────────────────
+function TemplatePickerPanel({
+  onClose,
+  onApply,
+}: {
+  onClose: () => void
+  onApply: (templateId: string) => void
+}) {
+  const { templates } = useTemplateStore()
 
   return (
-    <div className="w-72 bg-frnd-dark border-l border-white/10 flex flex-col shrink-0">
-      <div className="p-4 border-b border-white/10">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-white">Instruction Queue</h3>
-          {staged.length > 0 && (
-            <button onClick={clearStaged} className="text-xs text-red-400 hover:text-red-300">Clear staged</button>
-          )}
+    <div className="w-56 bg-[#0f0f0f] flex flex-col shrink-0 border-l border-white/[0.07]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.07]">
+        <div>
+          <span className="text-xs font-semibold text-white">Use Template</span>
+          <p className="text-[10px] text-white/30 mt-0.5">Apply bounding zones from a template</p>
         </div>
-        <p className="text-xs text-gray-500 mt-0.5">{staged.length} staged · {executed.length} executed</p>
+        <button onClick={onClose} className="text-white/30 hover:text-white/60 transition-colors">
+          <X size={14} />
+        </button>
       </div>
-
-      {staged.length > 10 && (
-        <div className="mx-3 mt-3 bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 flex items-center gap-2 text-xs text-amber-400">
-          <AlertTriangle size={12} /> More than 10 instructions — consider splitting into multiple jobs.
-        </div>
-      )}
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {instructions.length === 0 ? (
-          <div className="text-center py-10 text-gray-600">
-            <Sparkles size={24} className="mx-auto mb-2 opacity-30" />
-            <p className="text-xs">Draw a mask or use a tool to add instructions</p>
-          </div>
-        ) : (
-          <>
-            {staged.length > 0 && (
-              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider px-1 pt-1">Staged</div>
-            )}
-            {staged.map((instr) => (
-              <InstructionRow key={instr.id} instr={instr} isActive={activeInstructionId === instr.id} onActivate={() => setActiveInstruction(instr.id)} onRemove={() => removeInstruction(instr.id)} onUpdate={(patch) => updateInstruction(instr.id, patch)} />
-            ))}
-            {executed.length > 0 && (
-              <div className="text-xs font-semibold text-gray-600 uppercase tracking-wider px-1 pt-2">Executed</div>
-            )}
-            {executed.map((instr) => (
-              <InstructionRow key={instr.id} instr={instr} isActive={false} onActivate={() => {}} onRemove={() => removeInstruction(instr.id)} onUpdate={() => {}} dimmed />
-            ))}
-          </>
+        {templates.length === 0 && (
+          <p className="text-[11px] text-white/25 text-center py-8">No saved templates</p>
         )}
+        {templates.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => onApply(t.id)}
+            className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.07] hover:bg-white/[0.07] hover:border-white/10 transition-all text-left group"
+          >
+            <div className="w-9 h-9 rounded-lg overflow-hidden bg-black/40 shrink-0 border border-white/10">
+              <img src={t.thumbnailUrl} alt={t.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-medium text-white/80 truncate leading-tight">{t.name}</p>
+              <p className="text-[10px] text-white/30 mt-0.5">
+                {t.boundingBoxes.length} zone{t.boundingBoxes.length !== 1 ? 's' : ''} · {t.originTool === 'KVGenerator' ? 'KV Gen' : 'Image Ed'}
+              </p>
+            </div>
+          </button>
+        ))}
       </div>
 
-      {/* Actions */}
-      <div className="p-3 border-t border-white/10 space-y-2">
-        {isRegenerating ? (
-          <div>
-            <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
-              <Loader2 size={12} className="animate-spin text-cimb-red" />
-              <span>Processing instructions... {Math.round(regenProgress)}%</span>
-            </div>
-            <div className="w-full bg-white/10 rounded-full h-1.5">
-              <div className="bg-cimb-red h-1.5 rounded-full transition-all" style={{ width: `${regenProgress}%` }} />
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={onRegenerate}
-            disabled={staged.length === 0 || !session.sourceImageUrl}
-            className="w-full py-2.5 bg-cimb-red text-white text-sm font-semibold rounded-xl hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            <Sparkles size={14} /> Regenerate ({staged.length})
-          </button>
-        )}
-        <div className="pt-1 border-t border-white/10 space-y-1.5">
-          <p className="text-xs text-gray-500 font-medium mb-1">Approve & Export</p>
-          <button
-            onClick={onApproveDownload}
-            className="w-full py-2 bg-white/10 border border-white/20 text-gray-300 text-xs font-medium rounded-lg hover:bg-white/20 flex items-center justify-center gap-1.5"
-          >
-            <Download size={12} /> Download as-is
-          </button>
-          <button
-            onClick={onApproveResize}
-            className="w-full py-2 bg-cimb-red text-white text-xs font-medium rounded-lg hover:bg-red-700 flex items-center justify-center gap-1.5"
-          >
-            <Maximize2 size={12} /> Export & Resize for platforms
-          </button>
-        </div>
+      <div className="px-3 pb-3">
+        <button
+          onClick={() => window.open('/kv-generator/templates', '_blank')}
+          className="w-full py-2 text-[11px] text-white/30 hover:text-white/60 border border-white/[0.07] rounded-xl transition-colors"
+        >
+          Browse all templates →
+        </button>
       </div>
     </div>
   )
 }
 
 // ── Inline prompt popover ─────────────────────────────────────────
-function InlinePromptInput({ type, onConfirm, onCancel }: {
-  type: InstructionType; onConfirm: (data: { prompt: string; content?: string; fillHint?: string }) => void; onCancel: () => void
+function InlinePromptInput({ type, onConfirm, onCancel, initialPrompt = '', initialContent = '', initialFillHint = '' }: {
+  type: InstructionType
+  onConfirm: (data: { prompt: string; content?: string; fillHint?: string }) => void
+  onCancel: () => void
+  initialPrompt?: string
+  initialContent?: string
+  initialFillHint?: string
 }) {
-  const [prompt, setPrompt] = useState('')
-  const [content, setContent] = useState('')
-  const [fillHint, setFillHint] = useState('')
+  const [prompt, setPrompt] = useState(initialPrompt)
+  const [content, setContent] = useState(initialContent)
+  const [fillHint, setFillHint] = useState(initialFillHint)
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-80 bg-frnd-dark rounded-xl shadow-2xl border border-white/10 p-4 z-30">
+    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-80 bg-frnd-dark rounded-xl shadow-2xl border border-white/10 p-4 z-30">
       <div className="flex items-center justify-between mb-3">
         <span className={`text-xs px-2 py-0.5 rounded font-medium ${INSTR_CONFIG[type].bgColor} ${INSTR_CONFIG[type].color}`}>{INSTR_CONFIG[type].label}</span>
         <button onClick={onCancel}><X size={14} className="text-gray-500" /></button>
@@ -265,20 +490,21 @@ function InlinePromptInput({ type, onConfirm, onCancel }: {
           onClick={() => (type === 'Text' ? content.trim() : type === 'Erase' ? true : prompt.trim()) && onConfirm({ prompt, content, fillHint })}
           className="flex-1 py-1.5 text-xs font-medium text-white bg-cimb-red rounded-lg hover:bg-red-700"
         >
-          Add to Queue
+          {initialPrompt || initialContent || initialFillHint ? 'Save Changes' : 'Add to Queue'}
         </button>
       </div>
     </div>
   )
 }
 
-// ── Main Editor Page (KV Generator Sub-D) ─────────────────────────
+// ── Regen overlay ─────────────────────────────────────────────────
 const REGEN_THUMBS = [
   'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600&h=600&fit=crop',
   'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=600&h=600&fit=crop',
   'https://images.unsplash.com/photo-1593672715438-d88a70629abe?w=600&h=600&fit=crop',
 ]
 
+// ── Main Editor Page ──────────────────────────────────────────────
 export default function EditorPage() {
   const navigate = useNavigate()
   const { id: projectId } = useParams<{ id: string }>()
@@ -287,8 +513,9 @@ export default function EditorPage() {
   const {
     session, activeTool, setActiveTool,
     drawingMask, setDrawingMask, canvasMasks, addCanvasMask, removeCanvasMask,
-    instructions, addInstruction, isRegenerating, regenProgress, startRegen, tickRegen, completeRegen,
-    setSourceImage, enableBrand, resetSession,
+    instructions, addInstruction, updateInstruction, removeInstruction, isRegenerating, regenProgress,
+    startRegen, tickRegen, completeRegen,
+    setSourceImage, enableBrand, resetSession, clearStaged,
   } = useImageEditorStore()
   const { addVersion } = useVersionStore()
   const { getVariants } = useGenerationStore()
@@ -298,9 +525,30 @@ export default function EditorPage() {
 
   const [showHistory, setShowHistory] = useState(false)
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+  const [showAddAsset, setShowAddAsset] = useState(false)
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false)
+  const [showDAMBrowser, setShowDAMBrowser] = useState(false)
   const [pendingMask, setPendingMask] = useState<{ x: number; y: number; width: number; height: number } | null>(null)
   const [pendingInstrType, setPendingInstrType] = useState<InstructionType | null>(null)
   const [showInlinePrompt, setShowInlinePrompt] = useState(false)
+  const [editingInstrId, setEditingInstrId] = useState<string | null>(null)
+  const [zoom, setZoom] = useState(100)
+
+  type ActiveToolType = 'rectangle' | 'freehand' | 'text' | 'erase' | 'overlay' | 'move' | null
+
+  // ── Canvas asset state & refs ─────────────────────────────────
+  const [canvasAssets, setCanvasAssets] = useState<CanvasAsset[]>([])
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
+  const [editingAssetId, setEditingAssetId] = useState<string | null>(null)
+  const [editAssetPrompt, setEditAssetPrompt] = useState('')
+  const [pendingAssetPos, setPendingAssetPos] = useState<{ x: number; y: number } | null>(null)
+
+  const dragStateRef = useRef<{
+    assetId: string; startMX: number; startMY: number; startX: number; startY: number
+  } | null>(null)
+  const rotateStateRef = useRef<{
+    assetId: string; centerX: number; centerY: number; startAngle: number; startRotation: number
+  } | null>(null)
 
   const canvasRef = useRef<HTMLDivElement>(null)
   const drawStartRef = useRef<{ x: number; y: number } | null>(null)
@@ -317,15 +565,118 @@ export default function EditorPage() {
     }
   }, [activeVariant?.thumbnailUrl])
 
+  // ── Auto-apply template bounding boxes when entering editor ────────────────
+  useEffect(() => {
+    const { draft, updateDraft } = useContextStore.getState()
+    const templateId = draft.selectedTemplateId
+    if (!templateId) return
+    const template = useTemplateStore.getState().getTemplate(templateId)
+    if (!template) return
+    template.boundingBoxes.forEach((box) => {
+      const mask = { shape: 'rectangle' as const, x: box.x, y: box.y, width: box.width, height: box.height }
+      const instrId = addInstruction({
+        type: 'InPaint',
+        label: box.label,
+        prompt: box.description,
+        mask,
+      })
+      addCanvasMask({ instructionId: instrId, ...mask })
+    })
+    // Clear so it doesn't re-apply on re-entry
+    updateDraft({ selectedTemplateId: null })
+  }, [])
+
   const currentImage = activeVariant?.thumbnailUrl || session.sourceImageUrl
 
-  const maskTools: MaskShape[] = ['rectangle', 'freehand']
-  const MASK_TOOL_ICONS: Record<MaskShape, React.ReactNode> = {
-    rectangle: <Square size={15} />,
-    ellipse: <Square size={15} />,
-    polygon: <Square size={15} />,
-    freehand: <Lasso size={15} />,
+  // ── Add asset from DAM / upload → place on canvas ──────────────────────────
+  const handleAddAsset = (assets: { id: string; name: string; url: string; thumbnailUrl: string }[]) => {
+    const pos = pendingAssetPos ?? { x: 40, y: 40 }
+    const newAssets: CanvasAsset[] = assets.map((a) => ({
+      id: `ca-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: a.name,
+      url: a.url,
+      thumbnailUrl: a.thumbnailUrl,
+      x: Math.max(0, pos.x - 10),
+      y: Math.max(0, pos.y - 10),
+      w: 20,
+      h: 20,
+      rotation: 0,
+      prompt: '',
+    }))
+    setCanvasAssets((prev) => [...prev, ...newAssets])
+    if (newAssets.length > 0) {
+      setSelectedAssetId(newAssets[newAssets.length - 1].id)
+    }
+    setPendingAssetPos(null)
+    setShowDAMBrowser(false)
+    setShowAddAsset(false)
   }
+
+  // ── Apply template: convert bounding boxes → InPaint instructions + canvas masks ─
+  const handleApplyTemplate = (templateId: string) => {
+    const template = useTemplateStore.getState().getTemplate(templateId)
+    if (!template) return
+    template.boundingBoxes.forEach((box) => {
+      const mask = { shape: 'rectangle' as const, x: box.x, y: box.y, width: box.width, height: box.height }
+      const instrId = addInstruction({
+        type: 'InPaint',
+        label: box.label,
+        prompt: box.description,
+        mask,
+      })
+      addCanvasMask({ instructionId: instrId, ...mask })
+    })
+    setShowTemplatePicker(false)
+  }
+
+  // ── Global mouse handlers for drag & rotate ────────────────────────────────
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      // DRAG asset
+      if (dragStateRef.current) {
+        const { assetId, startMX, startMY, startX, startY } = dragStateRef.current
+        const canvasEl = document.getElementById('kv-canvas')
+        if (!canvasEl) return
+        const rect = canvasEl.getBoundingClientRect()
+        const dx = ((e.clientX - startMX) / rect.width) * 100
+        const dy = ((e.clientY - startMY) / rect.height) * 100
+        setCanvasAssets((prev) =>
+          prev.map((a) =>
+            a.id === assetId
+              ? { ...a, x: Math.max(-a.w / 2, Math.min(100 - a.w / 2, startX + dx)), y: Math.max(-a.h / 2, Math.min(100 - a.h / 2, startY + dy)) }
+              : a
+          )
+        )
+      }
+      // ROTATE asset
+      if (rotateStateRef.current) {
+        const { assetId, centerX, centerY, startAngle, startRotation } = rotateStateRef.current
+        const canvasEl = document.getElementById('kv-canvas')
+        if (!canvasEl) return
+        const rect = canvasEl.getBoundingClientRect()
+        const cx = rect.left + (centerX / 100) * rect.width
+        const cy = rect.top + (centerY / 100) * rect.height
+        const angle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI) + 90
+        const delta = angle - startAngle
+        const newRotation = ((startRotation + delta) % 360 + 360) % 360
+        setCanvasAssets((prev) =>
+          prev.map((a) => (a.id === assetId ? { ...a, rotation: newRotation } : a))
+        )
+      }
+    }
+
+    const handleMouseUp = () => {
+      dragStateRef.current = null
+      rotateStateRef.current = null
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [])
 
   const getCanvasCoords = (e: React.MouseEvent) => {
     if (!canvasRef.current) return { x: 0, y: 0 }
@@ -348,17 +699,27 @@ export default function EditorPage() {
       setShowInlinePrompt(true)
       return
     }
+    if (activeTool === 'overlay') {
+      const { x, y } = getCanvasCoords(e)
+      setPendingAssetPos({ x, y })
+      setPendingMask({ x: Math.max(0, x - 20), y: Math.max(0, y - 20), width: 40, height: 40 })
+      setPendingInstrType('AssetOverlay')
+      setShowInlinePrompt(true)
+      return
+    }
     e.preventDefault()
     const { x, y } = getCanvasCoords(e)
     drawStartRef.current = { x, y }
-    setDrawingMask({ shape: activeTool as MaskShape, x, y, width: 0, height: 0 })
+    const drawShape: MaskShape = (activeTool === 'rectangle' || activeTool === 'freehand') ? activeTool : 'rectangle'
+    setDrawingMask({ shape: drawShape, x, y, width: 0, height: 0 })
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!drawStartRef.current || !activeTool || activeTool === 'move' || activeTool === 'text' || activeTool === 'erase' || activeTool === 'overlay') return
+    if (!drawStartRef.current || !activeTool || activeTool === 'move' || activeTool === 'text' || activeTool === 'overlay') return
     const { x, y } = getCanvasCoords(e)
+    const drawShape: MaskShape = (activeTool === 'rectangle' || activeTool === 'freehand') ? activeTool : 'rectangle'
     setDrawingMask({
-      shape: activeTool as MaskShape,
+      shape: drawShape,
       x: Math.min(drawStartRef.current.x, x),
       y: Math.min(drawStartRef.current.y, y),
       width: Math.abs(x - drawStartRef.current.x),
@@ -378,15 +739,23 @@ export default function EditorPage() {
   }
 
   const handleConfirmInstruction = ({ prompt, content, fillHint }: { prompt: string; content?: string; fillHint?: string }) => {
+    if (editingInstrId) {
+      // Editing existing instruction
+      updateInstruction(editingInstrId, { prompt, content: content || undefined, fillHint: fillHint || undefined })
+      setEditingInstrId(null)
+      setShowInlinePrompt(false)
+      return
+    }
+    // Creating new instruction
     if (!pendingMask || !pendingInstrType) return
     const label = pendingInstrType === 'Text' ? `Text: "${content?.slice(0, 20)}"` : `${INSTR_CONFIG[pendingInstrType].label} region`
     const instrId = addInstruction({
       type: pendingInstrType, label, prompt,
       content: content || undefined, fillHint: fillHint || undefined,
-      mask: { shape: (activeTool as MaskShape) || 'rectangle', ...pendingMask },
+      mask: { shape: (activeTool === 'rectangle' || activeTool === 'freehand') ? activeTool : 'rectangle', ...pendingMask },
     })
     if (pendingInstrType !== 'Text') {
-      addCanvasMask({ instructionId: instrId, shape: (activeTool as MaskShape) || 'rectangle', ...pendingMask })
+      addCanvasMask({ instructionId: instrId, shape: (activeTool === 'rectangle' || activeTool === 'freehand') ? activeTool : 'rectangle', ...pendingMask })
     }
     setShowInlinePrompt(false)
     setPendingMask(null)
@@ -411,164 +780,467 @@ export default function EditorPage() {
     }, 150)
   }
 
-  const handleApproveDownload = () => {
-    updateProjectStatus(effectiveProjectId, 'Exported')
-    navigate(`/kv-generator/projects/${effectiveProjectId}/export?intent=original`)
-  }
-
   const handleApproveResize = () => {
     updateProjectStatus(effectiveProjectId, 'Exported')
     setSelectedDimIds([])
     navigate(`/kv-generator/projects/${effectiveProjectId}/export?intent=resize`)
   }
 
-  const toolGroups = [
-    { label: 'Mask', tools: maskTools.map((s) => ({ id: s, icon: MASK_TOOL_ICONS[s], tip: s.charAt(0).toUpperCase() + s.slice(1) })) },
-    { label: 'Tools', tools: [
-      { id: 'text', icon: <Type size={15} />, tip: 'Add Text' },
-      { id: 'erase', icon: <Eraser size={15} />, tip: 'Erase Region' },
-      { id: 'overlay', icon: <ImageIcon size={15} />, tip: 'Asset Overlay' },
-    ]},
-    { label: 'Nav', tools: [{ id: 'move', icon: <MousePointer2 size={15} />, tip: 'Move / Select' }] },
+  const handleClearAll = () => {
+    clearStaged()
+    canvasMasks.forEach((m) => removeCanvasMask(m.instructionId))
+  }
+
+  const stagedCount = instructions.filter((i) => i.status === 'Staged').length
+
+  const tools = [
+    { id: 'rectangle', icon: <Square size={16} />, tip: 'Rectangle Mask' },
+    { id: 'freehand', icon: <Lasso size={16} />, tip: 'Freehand Mask' },
+    { id: 'text', icon: <Type size={16} />, tip: 'Add Text' },
+    { id: 'erase', icon: <Eraser size={16} />, tip: 'Erase Region' },
+    { id: 'overlay', icon: <ImageIcon size={16} />, tip: 'Asset Overlay' },
+    { id: 'move', icon: <MousePointer2 size={16} />, tip: 'Move / Select' },
   ]
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] overflow-hidden">
-      {/* Left Toolbar */}
-      <div className="w-14 bg-frnd-dark flex flex-col items-center py-3 gap-1 shrink-0 border-r border-white/10">
-        {toolGroups.map((grp, gi) => (
-          <div key={gi} className="w-full flex flex-col items-center gap-1">
-            {gi > 0 && <div className="w-8 h-px bg-white/10 my-1" />}
-            {grp.tools.map((t) => (
+    <div className="flex flex-col h-[calc(100vh-7rem)] overflow-hidden bg-[#111]">
+
+      {/* ── Top toolbar ─────────────────────────────────────────── */}
+      <header className="h-12 shrink-0 bg-[#0f0f0f] border-b border-white/[0.07] flex items-center px-4 gap-2">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1.5 text-sm text-white/50 hover:text-white transition-colors mr-1"
+        >
+          <ArrowLeft size={15} /> Back
+        </button>
+        <div className="w-px h-4 bg-white/10" />
+        <span className="text-sm font-medium text-white ml-1">Canvas Editor</span>
+
+        <div className="flex-1" />
+
+        {/* Undo / Redo */}
+        <button title="Undo" className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-colors">
+          <Undo2 size={14} />
+        </button>
+        <button title="Redo" className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-colors">
+          <Redo2 size={14} />
+        </button>
+
+        {/* Zoom */}
+        <div className="flex items-center gap-1 bg-white/5 border border-white/[0.08] rounded-lg px-2.5 h-8 text-xs text-white/50 select-none">
+          <button onClick={() => setZoom(z => Math.max(25, z - 25))} className="hover:text-white transition-colors">—</button>
+          <span className="w-10 text-center text-white/60 font-medium">{zoom}%</span>
+          <button onClick={() => setZoom(z => Math.min(200, z + 25))} className="hover:text-white transition-colors">+</button>
+        </div>
+
+        {/* History */}
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          title="Version History"
+          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${showHistory ? 'bg-white/15 text-white' : 'text-white/30 hover:text-white hover:bg-white/10'}`}
+        >
+          <History size={14} />
+        </button>
+
+        <div className="w-px h-4 bg-white/10 mx-1" />
+
+        {/* Save Template */}
+        <button
+          onClick={() => setShowSaveTemplate(true)}
+          className="flex items-center gap-1.5 px-3 h-8 text-xs font-medium text-white/60 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all"
+        >
+          <Save size={12} /> Save Template
+        </button>
+
+        {/* Download */}
+        <button
+          onClick={() => {
+            if (currentImage) {
+              const a = document.createElement('a')
+              a.href = currentImage
+              a.download = `kv-${effectiveProjectId}-${Date.now()}.jpg`
+              a.click()
+            }
+          }}
+          disabled={!currentImage}
+          className="flex items-center gap-1.5 px-3 h-8 text-xs font-medium text-white/60 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all disabled:opacity-40"
+        >
+          <Download size={12} /> Download
+        </button>
+
+        {/* Export */}
+        <button
+          onClick={handleApproveResize}
+          className="flex items-center gap-1.5 px-3 h-8 text-xs font-medium bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          <Maximize2 size={12} /> Resize
+        </button>
+      </header>
+
+      {/* ── Main row ─────────────────────────────────────────────── */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* Left toolbar */}
+        <aside className="w-11 bg-[#0f0f0f] border-r border-white/[0.07] flex flex-col items-center py-3 gap-1 shrink-0">
+          {tools.map((t, i) => (
+            <div key={t.id} className="flex flex-col items-center w-full">
+              {i === 4 && <div className="w-6 h-px bg-white/10 my-1.5" />}
               <button
-                key={t.id}
-                onClick={() => setActiveTool(t.id === activeTool ? null : t.id as any)}
+                onClick={() => {
+                  if (t.id === 'overlay') {
+                    setActiveTool('overlay')
+                    setShowAddAsset(true)
+                  } else {
+                    setActiveTool(t.id === activeTool ? null : t.id as ActiveToolType)
+                  }
+                }}
                 title={t.tip}
-                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${activeTool === t.id ? 'bg-cimb-red text-white' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                  activeTool === t.id
+                    ? 'bg-white/15 text-white'
+                    : 'text-white/25 hover:text-white/70 hover:bg-white/5'
+                }`}
               >
                 {t.icon}
               </button>
-            ))}
-          </div>
-        ))}
-        <div className="flex-1" />
-        <div className="w-8 h-px bg-white/10 my-1" />
-        <button onClick={() => {}} title="Undo" className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10"><Undo2 size={15} /></button>
-        <button onClick={() => {}} title="Redo" className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10"><Redo2 size={15} /></button>
-        <button onClick={() => setShowHistory(!showHistory)} title="Version History" className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${showHistory ? 'bg-cimb-red text-white' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}>
-          <History size={15} />
-        </button>
-      </div>
-
-      {/* Canvas area */}
-      <div className="flex-1 bg-black flex flex-col overflow-hidden">
-        {/* Canvas topbar */}
-        <div className="bg-frnd-dark border-b border-white/10 px-4 py-2 flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-xs text-green-400 font-medium">
-            <Lock size={10} /> CIMB Brand Active
-          </div>
-          <span className="text-xs text-gray-600">v{session.versions.length} · {session.versions.length === 1 ? 'Original' : 'Edited'}</span>
-          <div className="flex-1" />
-          {activeTool && (
-            <span className="text-xs text-cimb-red font-medium capitalize">
-              {activeTool === 'move' ? 'Select / Move' : activeTool === 'text' ? 'Add Text' : activeTool === 'erase' ? 'Erase Region' : activeTool === 'overlay' ? 'Asset Overlay' : `${activeTool} mask`} tool active
-            </span>
-          )}
-          <button onClick={() => setShowSaveTemplate(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-400 border border-white/10 rounded-lg hover:bg-white/10 hover:text-white transition-all">
-            <Save size={12} /> Save Template
-          </button>
-        </div>
-
-        {/* Canvas */}
-        <div className="flex-1 flex items-center justify-center p-6 relative overflow-hidden">
-          {isRegenerating && (
-            <div className="absolute inset-0 bg-black/80 z-10 flex flex-col items-center justify-center">
-              <Loader2 size={36} className="text-white animate-spin mb-4" />
-              <p className="text-white font-medium mb-3">Executing instruction queue...</p>
-              <div className="w-64 bg-white/20 rounded-full h-2">
-                <div className="bg-white h-2 rounded-full transition-all" style={{ width: `${regenProgress}%` }} />
-              </div>
-              <p className="text-white/60 text-xs mt-2">{Math.round(regenProgress)}%</p>
             </div>
-          )}
+          ))}
+        </aside>
 
-          <div
-            ref={canvasRef}
-            className={`relative bg-black shadow-2xl rounded overflow-hidden select-none ${activeTool && activeTool !== 'move' ? 'cursor-crosshair' : 'cursor-default'}`}
-            style={{ width: 'min(65vh, 560px)', height: 'min(65vh, 560px)' }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-          >
-            {currentImage && <img src={currentImage} alt="Canvas" className="w-full h-full object-cover pointer-events-none" />}
-
-            {/* Canvas masks */}
-            {canvasMasks.map((mask) => {
-              const instrType = instructions.find((i) => i.id === mask.instructionId)?.type || 'InPaint'
-              const colorMap: Record<InstructionType, string> = { InPaint: 'border-blue-400 bg-blue-400/10', Text: 'border-violet-500 bg-violet-400/10', Erase: 'border-red-400 bg-red-400/10', AssetOverlay: 'border-green-400 bg-green-400/10' }
-              const shapeClass = mask.shape === 'ellipse' ? 'rounded-full' : 'rounded'
-              return (
-                <div key={mask.instructionId}
-                  className={`absolute border-2 ${colorMap[instrType]} ${shapeClass}`}
-                  style={{ left: `${mask.x}%`, top: `${mask.y}%`, width: `${mask.width}%`, height: `${mask.height}%` }}
-                >
-                  <button
-                    onClick={(e) => { e.stopPropagation(); removeCanvasMask(mask.instructionId) }}
-                    className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                  >
-                    <X size={9} />
-                  </button>
+        {/* Canvas area */}
+        <main className="flex-1 bg-[#111] flex flex-col overflow-hidden">
+          {/* Canvas */}
+          <div className="flex-1 flex items-center justify-center relative overflow-hidden p-6">
+            {isRegenerating && (
+              <div className="absolute inset-0 bg-black/80 z-10 flex flex-col items-center justify-center">
+                <Loader2 size={32} className="text-white animate-spin mb-3" />
+                <p className="text-white font-medium mb-3 text-sm">Executing instruction queue...</p>
+                <div className="w-56 bg-white/20 rounded-full h-1.5">
+                  <div className="bg-white h-1.5 rounded-full transition-all" style={{ width: `${regenProgress}%` }} />
                 </div>
-              )
-            })}
-
-            {/* Drawing preview */}
-            {drawingMask && drawingMask.width > 0 && (
-              <div
-                className={`absolute border-2 border-dashed border-cimb-red bg-cimb-red/10 pointer-events-none ${drawingMask.shape === 'ellipse' ? 'rounded-full' : ''}`}
-                style={{ left: `${drawingMask.x}%`, top: `${drawingMask.y}%`, width: `${drawingMask.width}%`, height: `${drawingMask.height}%` }}
-              />
+                <p className="text-white/50 text-xs mt-2">{Math.round(regenProgress)}%</p>
+              </div>
             )}
 
-            {/* Brand locked element */}
-            <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded px-2 py-1 flex items-center gap-1">
-              <Lock size={10} className="text-cimb-red" />
-              <span className="text-xs text-gray-300 font-medium">CIMB Logo locked</span>
+            <div
+              id="kv-canvas"
+              ref={canvasRef}
+              className={`relative bg-black shadow-2xl rounded-lg overflow-hidden select-none shrink-0 ${activeTool && activeTool !== 'move' ? 'cursor-crosshair' : 'cursor-default'}`}
+              style={{
+                width: `calc(min(65vh, 560px) * ${zoom / 100})`,
+                height: `calc(min(65vh, 560px) * ${zoom / 100})`,
+              }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+            >
+              {currentImage && <img src={currentImage} alt="Canvas" className="w-full h-full object-cover pointer-events-none" />}
+
+              {/* Canvas assets (draggable + rotatable) */}
+              {canvasAssets.map((ca) => {
+                const isSelected = selectedAssetId === ca.id
+                return (
+                  <div
+                    key={ca.id}
+                    className="absolute select-none"
+                    style={{ left: `${ca.x}%`, top: `${ca.y}%`, width: `${ca.w}%`, height: `${ca.h}%` }}
+                  >
+                    {/* Image — rotatable container */}
+                    <div
+                      id={`canvas-asset-${ca.id}`}
+                      className="relative w-full h-full"
+                      style={{ transform: `rotate(${ca.rotation}deg)`, transformOrigin: 'center center', cursor: isSelected ? 'grabbing' : 'grab' }}
+                      onDoubleClick={(e) => { e.stopPropagation(); setEditingAssetId(ca.id); setEditAssetPrompt(ca.prompt) }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation()
+                        setSelectedAssetId(ca.id)
+                        dragStateRef.current = { assetId: ca.id, startMX: e.clientX, startMY: e.clientY, startX: ca.x, startY: ca.y }
+                      }}
+                    >
+                      <img
+                        src={ca.thumbnailUrl || ca.url}
+                        alt={ca.name}
+                        className="w-full h-full object-cover rounded-sm pointer-events-none"
+                        draggable={false}
+                      />
+                      {/* Selection border */}
+                      {isSelected && <div className="absolute inset-0 border-2 border-cyan-400 rounded-sm pointer-events-none" />}
+                    </div>
+
+                    {/* Controls — OUTSIDE the rotated div so they stay upright */}
+                    {isSelected && (
+                      <>
+                        {/* Rotation handle */}
+                        <div
+                          className="absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center z-10"
+                          style={{ cursor: 'grab' }}
+                          onMouseDown={(e) => {
+                            e.stopPropagation()
+                            const canvasEl = document.getElementById('kv-canvas')
+                            const assetEl = document.getElementById(`canvas-asset-${ca.id}`)
+                            if (!canvasEl || !assetEl) return
+                            const canvasRect = canvasEl.getBoundingClientRect()
+                            const assetRect = assetEl.getBoundingClientRect()
+                            const cxPx = assetRect.left + assetRect.width / 2
+                            const cyPx = assetRect.top + assetRect.height / 2
+                            rotateStateRef.current = {
+                              assetId: ca.id,
+                              centerX: ((cxPx - canvasRect.left) / canvasRect.width) * 100,
+                              centerY: ((cyPx - canvasRect.top) / canvasRect.height) * 100,
+                              startAngle: Math.atan2(e.clientY - cyPx, e.clientX - cxPx) * (180 / Math.PI) + 90,
+                              startRotation: ca.rotation,
+                            }
+                          }}
+                        >
+                          <div className="w-5 h-5 rounded-full bg-cyan-500 border-2 border-white flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing">
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                              <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" />
+                            </svg>
+                          </div>
+                          <div className="w-px h-3 bg-cyan-400/60" />
+                        </div>
+
+                        {/* Delete handle */}
+                        <button
+                          className="absolute -top-2.5 -right-2.5 z-10 w-5 h-5 rounded-full bg-red-500 border border-white flex items-center justify-center shadow-lg hover:bg-red-400 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setCanvasAssets((prev) => prev.filter((a) => a.id !== ca.id))
+                            setSelectedAssetId(null)
+                          }}
+                        >
+                          <X size={10} />
+                        </button>
+
+                        {/* Rotation badge */}
+                        <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 z-10 px-1.5 py-0.5 rounded bg-black/70 border border-cyan-500/40 text-[9px] text-cyan-300 font-mono whitespace-nowrap pointer-events-none">
+                          {Math.round(ca.rotation)}°
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+
+              {/* Canvas masks */}
+              {canvasMasks.map((mask) => {
+                const instrType = instructions.find((i) => i.id === mask.instructionId)?.type || 'InPaint'
+                const colorMap: Record<InstructionType, string> = { InPaint: 'border-blue-400 bg-blue-400/10', Text: 'border-violet-500 bg-violet-400/10', Erase: 'border-red-400 bg-red-400/10', AssetOverlay: 'border-green-400 bg-green-400/10' }
+                return (
+                  <div key={mask.instructionId}
+                    className={`absolute border-2 ${colorMap[instrType]} rounded`}
+                    style={{ left: `${mask.x}%`, top: `${mask.y}%`, width: `${mask.width}%`, height: `${mask.height}%` }}
+                  >
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeCanvasMask(mask.instructionId) }}
+                      className="absolute -top-2.5 -right-2.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
+                    >
+                      <X size={9} />
+                    </button>
+                  </div>
+                )
+              })}
+
+              {/* Drawing preview */}
+              {drawingMask && drawingMask.width > 0 && (
+                <div
+                  className="absolute border-2 border-dashed border-cimb-red bg-cimb-red/10 pointer-events-none"
+                  style={{ left: `${drawingMask.x}%`, top: `${drawingMask.y}%`, width: `${drawingMask.width}%`, height: `${drawingMask.height}%` }}
+                />
+              )}
+
+              {/* Brand locked element */}
+              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm rounded px-2 py-1 flex items-center gap-1">
+                <Lock size={10} className="text-cimb-red" />
+                <span className="text-xs text-gray-300 font-medium">CIMB Logo locked</span>
+              </div>
             </div>
+
+            {/* Asset prompt inline editor */}
+            {editingAssetId && (() => {
+              const asset = canvasAssets.find((a) => a.id === editingAssetId)
+              if (!asset) return null
+              return (
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-80 bg-frnd-dark rounded-xl shadow-2xl border border-white/10 p-4 z-30">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs px-2 py-0.5 rounded font-medium bg-green-500/20 text-green-400">Asset Prompt</span>
+                    <button onClick={() => setEditingAssetId(null)}><X size={14} className="text-gray-500" /></button>
+                  </div>
+                  <label className="block text-xs text-gray-500 mb-1">AI blend instruction</label>
+                  <textarea
+                    value={editAssetPrompt}
+                    onChange={(e) => setEditAssetPrompt(e.target.value)}
+                    rows={2}
+                    placeholder="e.g. blend naturally as product showcase"
+                    className="w-full px-2 py-1.5 text-sm bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 resize-none focus:outline-none focus:border-cyan-500/50 mb-3"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditingAssetId(null)}
+                      className="flex-1 py-1.5 text-xs text-gray-400 bg-white/10 rounded-lg hover:bg-white/20"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setCanvasAssets((prev) => prev.map((a) => a.id === editingAssetId ? { ...a, prompt: editAssetPrompt } : a))
+                        setEditingAssetId(null)
+                      }}
+                      className="flex-1 py-1.5 text-xs font-medium text-white bg-cyan-600 rounded-lg hover:bg-cyan-500"
+                    >
+                      Save Prompt
+                    </button>
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* Inline prompt input — create or edit mode */}
+            {showInlinePrompt && (() => {
+              const editingInstr = editingInstrId ? instructions.find((i) => i.id === editingInstrId) : null
+              const effectiveType = editingInstr ? editingInstr.type : pendingInstrType!
+              return (
+                <InlinePromptInput
+                  key={editingInstrId ?? 'new'}
+                  type={effectiveType}
+                  onConfirm={handleConfirmInstruction}
+                  onCancel={() => {
+                    setShowInlinePrompt(false)
+                    setPendingMask(null)
+                    setPendingInstrType(null)
+                    setEditingInstrId(null)
+                  }}
+                  initialPrompt={editingInstr?.prompt ?? ''}
+                  initialContent={editingInstr?.content ?? ''}
+                  initialFillHint={editingInstr?.fillHint ?? ''}
+                />
+              )
+            })()}
+
+            {/* Tool hint */}
+            {activeTool && !showInlinePrompt && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-frnd-dark text-white text-xs px-3 py-2 rounded-full pointer-events-none border border-white/10">
+                {(activeTool === 'rectangle' || activeTool === 'freehand') && 'Click and drag to draw mask'}
+                {activeTool === 'text' && 'Click canvas to place text'}
+                {activeTool === 'erase' && 'Draw over region to erase'}
+                {activeTool === 'overlay' && 'Click to place asset overlay'}
+              </div>
+            )}
+
+            {showHistory && <VersionPanel projectId={effectiveProjectId} onClose={() => setShowHistory(false)} />}
           </div>
 
-          {/* Inline prompt input */}
-          {showInlinePrompt && pendingInstrType && (
-            <InlinePromptInput
-              type={pendingInstrType}
-              onConfirm={handleConfirmInstruction}
-              onCancel={() => { setShowInlinePrompt(false); setPendingMask(null) }}
+          {/* Bottom actions */}
+          <div className="shrink-0 pb-5 flex items-center justify-center gap-3">
+            <button
+              onClick={handleClearAll}
+              className="px-5 py-2.5 text-sm font-medium text-white/60 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:text-white transition-all"
+            >
+              Clear All
+            </button>
+            <button
+              onClick={handleRegenerate}
+              disabled={stagedCount === 0 || !session.sourceImageUrl || isRegenerating}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-white text-gray-900 rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isRegenerating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              Regenerate{stagedCount > 0 ? ` (${stagedCount})` : ''}
+            </button>
+          </div>
+
+          {/* Status bar */}
+          <div className="shrink-0 h-7 px-4 flex items-center justify-between border-t border-white/[0.05]">
+            <span className="text-[10px] text-white/20">
+              Drag to move · rotate handle to spin · double click to edit
+            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] text-white/20">prompt</span>
+              <span className="text-[10px] text-white/20">{canvasAssets.length} asset(s) on canvas.</span>
+            </div>
+          </div>
+        </main>
+
+        {/* Right panel */}
+        <aside className="flex border-l border-white/[0.07] shrink-0">
+          <CanvasItemsPanel
+            sourceImageUrl={session.sourceImageUrl}
+            instructions={instructions}
+            canvasAssets={canvasAssets}
+            onRemoveInstruction={removeInstruction}
+            onRemoveSource={() => resetSession()}
+            onRemoveCanvasAsset={(id) => setCanvasAssets((prev) => prev.filter((a) => a.id !== id))}
+            onEditInstruction={(id) => {
+              const instr = instructions.find((i) => i.id === id)
+              if (!instr) return
+              setEditingInstrId(id)
+              setShowInlinePrompt(true)
+            }}
+          />
+          {showAddAsset && (
+            <AddAssetPanel
+              onClose={() => setShowAddAsset(false)}
+              onUpload={(url, name) => {
+                const newAsset: CanvasAsset = {
+                  id: `ca-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  name: name || 'uploaded-image',
+                  url,
+                  thumbnailUrl: url,
+                  x: 30,
+                  y: 30,
+                  w: 20,
+                  h: 20,
+                  rotation: 0,
+                  prompt: '',
+                }
+                setCanvasAssets((prev) => [...prev, newAsset])
+                setSelectedAssetId(newAsset.id)
+                setShowAddAsset(false)
+              }}
+              onBrowseDAM={() => setShowDAMBrowser(true)}
             />
           )}
-
-          {/* Tool hint */}
-          {activeTool && !showInlinePrompt && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-frnd-dark text-white text-xs px-3 py-2 rounded-full pointer-events-none border border-white/10">
-              {maskTools.includes(activeTool as MaskShape) && 'Click and drag to draw mask'}
-              {activeTool === 'text' && 'Click canvas to place text'}
-              {activeTool === 'erase' && 'Draw over region to erase'}
-              {activeTool === 'overlay' && 'Click to place asset overlay'}
+          {showTemplatePicker && (
+            <TemplatePickerPanel
+              onClose={() => setShowTemplatePicker(false)}
+              onApply={handleApplyTemplate}
+            />
+          )}
+          {!showAddAsset && !showTemplatePicker && (
+            <div className="w-8 bg-[#0f0f0f] border-l border-white/[0.07] flex flex-col items-center py-3 gap-4">
+              <button
+                onClick={() => setShowAddAsset(true)}
+                className="text-white/20 hover:text-white/50 transition-colors"
+                title="Add Asset"
+              >
+                <Plus size={14} />
+              </button>
+              <button
+                onClick={() => setShowTemplatePicker(true)}
+                className="text-white/20 hover:text-white/50 transition-colors"
+                title="Use Template"
+              >
+                <Layers size={14} />
+              </button>
             </div>
           )}
-
-          {showHistory && <VersionPanel projectId={effectiveProjectId} onClose={() => setShowHistory(false)} />}
-        </div>
+        </aside>
       </div>
-
-      {/* Right: Instruction Queue Panel */}
-      <InstructionQueuePanel onRegenerate={handleRegenerate} onApproveDownload={handleApproveDownload} onApproveResize={handleApproveResize} />
 
       {showSaveTemplate && (
         <SaveTemplateModal
           onClose={() => setShowSaveTemplate(false)}
-          onSave={(name) => saveTemplate(name, 'KVGenerator', currentImage || '', false)}
+          previewImageUrl={currentImage || undefined}
+          canvasSize="1080 × 1080 px"
+          onSave={(name, description) => saveTemplate(name, 'KVGenerator', currentImage || '', false, description)}
         />
       )}
+
+      <DAMBrowserModal
+        isOpen={showDAMBrowser}
+        onClose={() => setShowDAMBrowser(false)}
+        onAdd={handleAddAsset}
+      />
     </div>
   )
 }

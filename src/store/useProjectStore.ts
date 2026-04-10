@@ -29,7 +29,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   setFilters: (f) => set((s) => ({ filters: { ...s.filters, ...f } })),
 
   createProject: (p) => {
-    const project: Project = { ...p, id: `p-${Date.now()}`, lastModifiedAt: new Date().toISOString() }
+    const now = new Date().toISOString()
+    const project: Project = { ...p, id: `p-${Date.now()}`, lastModifiedAt: now, lastEditedAt: now }
     set((s) => ({ projects: [project, ...s.projects] }))
     return project
   },
@@ -45,7 +46,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   duplicateProject: (id) => {
     const original = get().projects.find((p) => p.id === id)
     if (!original) return
-    const copy: Project = { ...original, id: `p-${Date.now()}`, name: `${original.name} (Copy)`, status: 'Draft', lastModifiedAt: new Date().toISOString() }
+    const now = new Date().toISOString()
+    const copy: Project = { ...original, id: `p-${Date.now()}`, name: `${original.name} (Copy)`, status: 'Draft', lastModifiedAt: now, lastEditedAt: now }
     set((s) => ({ projects: [copy, ...s.projects] }))
   },
 

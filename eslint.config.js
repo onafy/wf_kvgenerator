@@ -19,5 +19,13 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Suppress react-refresh/only-export-components for files exporting constants alongside components
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // Suppress unused vars for intentionally prefixed unused references and intentional unused loop index
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+      // Suppress set-state-in-effect for intentional synchronous state sync from URL params
+      'react-hooks/set-state-in-effect': 'warn',
+    },
   },
 ])

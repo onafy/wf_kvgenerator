@@ -12,15 +12,17 @@ const THUMBS = [
   'https://images.unsplash.com/photo-1559526324-593bc073d938?w=400&h=400&fit=crop',
 ]
 
+// lastEditedBy reflects who last saved a change — may differ from creatorId
+// u1 = Budi Santoso (current mock session user), u2 = Rina Kusuma, u3 = Ahmad Fauzi
 export const mockProjects: Project[] = [
-  { id: 'p1', name: 'Ramadan Promo 2026', status: 'Exported', segment: 'Family', funnel: 'Awareness' as FunnelStage, creatorId: 'u1', creatorName: 'Budi Santoso', lastModifiedAt: '2026-03-14T10:30:00Z', baseAssetUrl: THUMBS[0], thumbnailUrl: THUMBS[0], contextId: 'ctx1', templateVersionRef: null },
-  { id: 'p2', name: 'Hari Raya Sale', status: 'InProgress', segment: 'Youth', funnel: 'Consideration' as FunnelStage, creatorId: 'u2', creatorName: 'Rina Kusuma', lastModifiedAt: '2026-03-13T14:20:00Z', baseAssetUrl: THUMBS[1], thumbnailUrl: THUMBS[1], contextId: 'ctx2', templateVersionRef: { templateId: 't1', version: 2 } },
-  { id: 'p3', name: 'Premium Wealth Q2', status: 'InProgress', segment: 'Mass', funnel: 'Conversion' as FunnelStage, creatorId: 'u1', creatorName: 'Budi Santoso', lastModifiedAt: '2026-03-12T09:00:00Z', baseAssetUrl: THUMBS[2], thumbnailUrl: THUMBS[2], contextId: 'ctx3', templateVersionRef: null },
-  { id: 'p4', name: 'Youth Card April', status: 'Draft', segment: 'Youth', funnel: 'Awareness' as FunnelStage, creatorId: 'u3', creatorName: 'Ahmad Fauzi', lastModifiedAt: '2026-03-11T16:45:00Z', baseAssetUrl: THUMBS[3], thumbnailUrl: THUMBS[3], contextId: 'ctx4', templateVersionRef: null },
-  { id: 'p5', name: 'SME Financing Banner', status: 'Exported', segment: 'Mass', funnel: 'Conversion' as FunnelStage, creatorId: 'u2', creatorName: 'Rina Kusuma', lastModifiedAt: '2026-03-10T11:15:00Z', baseAssetUrl: THUMBS[4], thumbnailUrl: THUMBS[4], contextId: 'ctx5', templateVersionRef: { templateId: 't2', version: 1 } },
-  { id: 'p6', name: 'Tabungan Emas Launch', status: 'Draft', segment: 'Family', funnel: 'Consideration' as FunnelStage, creatorId: 'u3', creatorName: 'Ahmad Fauzi', lastModifiedAt: '2026-03-09T08:30:00Z', baseAssetUrl: THUMBS[5], thumbnailUrl: THUMBS[5], contextId: 'ctx6', templateVersionRef: null },
-  { id: 'p7', name: 'Xtra Saver Campaign', status: 'InProgress', segment: 'Mass', funnel: 'Awareness' as FunnelStage, creatorId: 'u1', creatorName: 'Budi Santoso', lastModifiedAt: '2026-03-08T13:00:00Z', baseAssetUrl: THUMBS[6], thumbnailUrl: THUMBS[6], contextId: 'ctx7', templateVersionRef: null },
-  { id: 'p8', name: 'KPR Digital 2026', status: 'Exported', segment: 'Family', funnel: 'Conversion' as FunnelStage, creatorId: 'u2', creatorName: 'Rina Kusuma', lastModifiedAt: '2026-03-07T10:00:00Z', baseAssetUrl: THUMBS[7], thumbnailUrl: THUMBS[7], contextId: 'ctx8', templateVersionRef: null },
+  { id: 'p1', name: 'Ramadan Promo 2026', status: 'Exported', segment: 'Family', funnel: 'Awareness' as FunnelStage, creatorId: 'u1', creatorName: 'Budi Santoso', lastModifiedAt: '2026-03-14T10:30:00Z', lastEditedBy: 'u1', lastEditedByName: 'Budi Santoso', lastEditedAt: '2026-03-14T10:30:00Z', baseAssetUrl: THUMBS[0], thumbnailUrl: THUMBS[0], contextId: 'ctx1', templateVersionRef: null },
+  { id: 'p2', name: 'Hari Raya Sale', status: 'InProgress', segment: 'Youth', funnel: 'Consideration' as FunnelStage, creatorId: 'u2', creatorName: 'Rina Kusuma', lastModifiedAt: '2026-03-25T08:45:00Z', lastEditedBy: 'u2', lastEditedByName: 'Rina Kusuma', lastEditedAt: '2026-03-25T08:45:00Z', baseAssetUrl: THUMBS[1], thumbnailUrl: THUMBS[1], contextId: 'ctx2', templateVersionRef: { templateId: 't1', version: 2 } },
+  { id: 'p3', name: 'Premium Wealth Q2', status: 'InProgress', segment: 'Mass', funnel: 'Conversion' as FunnelStage, creatorId: 'u1', creatorName: 'Budi Santoso', lastModifiedAt: '2026-03-24T14:20:00Z', lastEditedBy: 'u1', lastEditedByName: 'Budi Santoso', lastEditedAt: '2026-03-24T14:20:00Z', baseAssetUrl: THUMBS[2], thumbnailUrl: THUMBS[2], contextId: 'ctx3', templateVersionRef: null },
+  { id: 'p4', name: 'Youth Card April', status: 'Draft', segment: 'Youth', funnel: 'Awareness' as FunnelStage, creatorId: 'u3', creatorName: 'Ahmad Fauzi', lastModifiedAt: '2026-03-23T16:45:00Z', lastEditedBy: 'u3', lastEditedByName: 'Ahmad Fauzi', lastEditedAt: '2026-03-23T16:45:00Z', baseAssetUrl: THUMBS[3], thumbnailUrl: THUMBS[3], contextId: 'ctx4', templateVersionRef: null },
+  { id: 'p5', name: 'SME Financing Banner', status: 'Exported', segment: 'Mass', funnel: 'Conversion' as FunnelStage, creatorId: 'u2', creatorName: 'Rina Kusuma', lastModifiedAt: '2026-03-22T11:15:00Z', lastEditedBy: 'u1', lastEditedByName: 'Budi Santoso', lastEditedAt: '2026-03-22T11:15:00Z', baseAssetUrl: THUMBS[4], thumbnailUrl: THUMBS[4], contextId: 'ctx5', templateVersionRef: { templateId: 't2', version: 1 } },
+  { id: 'p6', name: 'Tabungan Emas Launch', status: 'Draft', segment: 'Family', funnel: 'Consideration' as FunnelStage, creatorId: 'u3', creatorName: 'Ahmad Fauzi', lastModifiedAt: '2026-03-21T08:30:00Z', lastEditedBy: 'u3', lastEditedByName: 'Ahmad Fauzi', lastEditedAt: '2026-03-21T08:30:00Z', baseAssetUrl: THUMBS[5], thumbnailUrl: THUMBS[5], contextId: 'ctx6', templateVersionRef: null },
+  { id: 'p7', name: 'Xtra Saver Campaign', status: 'InProgress', segment: 'Mass', funnel: 'Awareness' as FunnelStage, creatorId: 'u1', creatorName: 'Budi Santoso', lastModifiedAt: '2026-03-20T13:00:00Z', lastEditedBy: 'u1', lastEditedByName: 'Budi Santoso', lastEditedAt: '2026-03-20T13:00:00Z', baseAssetUrl: THUMBS[6], thumbnailUrl: THUMBS[6], contextId: 'ctx7', templateVersionRef: null },
+  { id: 'p8', name: 'KPR Digital 2026', status: 'Exported', segment: 'Family', funnel: 'Conversion' as FunnelStage, creatorId: 'u2', creatorName: 'Rina Kusuma', lastModifiedAt: '2026-03-19T10:00:00Z', lastEditedBy: 'u2', lastEditedByName: 'Rina Kusuma', lastEditedAt: '2026-03-19T10:00:00Z', baseAssetUrl: THUMBS[7], thumbnailUrl: THUMBS[7], contextId: 'ctx8', templateVersionRef: null },
 ]
 
 export const mockVariants: Record<string, Variant[]> = {
@@ -52,28 +54,60 @@ export const mockDAMAssets: DAMAsset[] = [
 
 export const mockTemplates: Template[] = [
   {
-    id: 't1', name: 'Master KV — Ramadan Layout', originTool: 'KVGenerator' as TemplateOrigin, segment: 'Retail',
-    creatorId: 'u1', creatorName: 'Budi Santoso', lastUsedAt: '2026-03-13T14:00:00Z',
-    usageCount: 7, thumbnailUrl: THUMBS[0], brandProfileVersion: 'v3', isPersonal: false,
-    savedAt: '2026-03-01T11:30:00Z',
+    id: 't1', name: 'Ramadan Standard Layout', originTool: 'KVGenerator' as TemplateOrigin, segment: 'Retail',
+    creatorId: 'u1', creatorName: 'Ahmad Rizki', lastUsedAt: new Date().toISOString(),
+    usageCount: 12, thumbnailUrl: THUMBS[0], brandProfileVersion: 'v3', isPersonal: false,
+    description: 'Ramadan campaign layout with strong hero image and bottom headline zone.',
+    savedAt: '2026-03-01T11:30:00Z', createdAt: '2026-03-15',
+    likeCount: 234, variantCount: 2,
+    boundingBoxes: [
+      { id: 'bb1', label: 'Hero Image Zone', description: 'Background with Ramadan mosque silhouette', x: 10, y: 10, width: 80, height: 60 },
+      { id: 'bb2', label: 'Headline Zone', description: 'Bold headline text', x: 10, y: 75, width: 80, height: 15 },
+    ],
   },
   {
-    id: 't2', name: 'SME Split Layout', originTool: 'KVGenerator' as TemplateOrigin, segment: 'SME',
-    creatorId: 'u2', creatorName: 'Rina Kusuma', lastUsedAt: '2026-03-10T11:00:00Z',
-    usageCount: 3, thumbnailUrl: THUMBS[4], brandProfileVersion: 'v3', isPersonal: false,
-    savedAt: '2026-03-05T14:00:00Z',
+    id: 't2', name: 'Digital Banking Minimal', originTool: 'KVGenerator' as TemplateOrigin, segment: 'SME',
+    creatorId: 'u2', creatorName: 'Sarah Wijaya', lastUsedAt: '2026-03-16T11:00:00Z',
+    usageCount: 7, thumbnailUrl: THUMBS[1], brandProfileVersion: 'v3', isPersonal: false,
+    description: 'Minimal banking visual centered around a clean product showcase area.',
+    savedAt: '2026-03-05T14:00:00Z', createdAt: '2026-03-12',
+    likeCount: 89, variantCount: 3,
+    boundingBoxes: [
+      { id: 'bb3', label: 'Product Zone', description: 'Mobile app screen mockup', x: 20, y: 15, width: 60, height: 50 },
+    ],
   },
   {
-    id: 't3', name: 'Youth Stories Template', originTool: 'ImageEditor' as TemplateOrigin, segment: 'Youth',
-    creatorId: 'u3', creatorName: 'Ahmad Fauzi', lastUsedAt: '2026-03-11T10:00:00Z',
-    usageCount: 5, thumbnailUrl: THUMBS[3], brandProfileVersion: 'v3', isPersonal: true,
-    savedAt: '2026-03-08T16:00:00Z',
+    id: 't3', name: 'Lifestyle Photography Full Bleed', originTool: 'ImageEditor' as TemplateOrigin, segment: 'Youth',
+    creatorId: 'u3', creatorName: 'Budi Santoso', lastUsedAt: '2026-03-15T10:00:00Z',
+    usageCount: 4, thumbnailUrl: THUMBS[2], brandProfileVersion: 'v3', isPersonal: true,
+    description: 'Full-bleed lifestyle composition with a CTA-safe area near the bottom.',
+    savedAt: '2026-03-08T16:00:00Z', createdAt: '2026-03-10',
+    likeCount: 156, variantCount: 2,
+    boundingBoxes: [
+      { id: 'bb5', label: 'CTA Overlay', description: 'Bold call-to-action text', x: 5, y: 80, width: 90, height: 15 },
+    ],
   },
   {
-    id: 't4', name: 'Premium Minimal — Dark', originTool: 'ImageEditor' as TemplateOrigin, segment: 'Premium',
-    creatorId: 'u1', creatorName: 'Budi Santoso', lastUsedAt: '2026-03-12T09:00:00Z',
-    usageCount: 2, thumbnailUrl: THUMBS[6], brandProfileVersion: 'v3', isPersonal: false,
-    savedAt: '2026-03-12T09:00:00Z',
+    id: 't4', name: 'Festive Campaign Banner', originTool: 'KVGenerator' as TemplateOrigin, segment: 'Premium',
+    creatorId: 'u1', creatorName: 'Ahmad Rizki', lastUsedAt: '2026-03-14T09:00:00Z',
+    usageCount: 9, thumbnailUrl: THUMBS[6], brandProfileVersion: 'v3', isPersonal: false,
+    description: 'Premium festive banner with a strong focal subject and highlighted offer area.',
+    savedAt: '2026-03-08T09:00:00Z', createdAt: '2026-03-08',
+    likeCount: 312, variantCount: 4,
+    boundingBoxes: [
+      { id: 'bb7', label: 'Full Background', description: 'Vibrant festive background', x: 0, y: 0, width: 100, height: 100 },
+    ],
+  },
+  {
+    id: 't5', name: 'Corporate Trust Layout', originTool: 'ImageEditor' as TemplateOrigin, segment: 'Mass',
+    creatorId: 'u2', creatorName: 'Sarah Wijaya', lastUsedAt: '2026-03-10T12:00:00Z',
+    usageCount: 3, thumbnailUrl: THUMBS[7], brandProfileVersion: 'v3', isPersonal: false,
+    description: 'Corporate-first composition with reserved brand and logo placement zones.',
+    savedAt: '2026-03-05T12:00:00Z', createdAt: '2026-03-05',
+    likeCount: 45, variantCount: 2,
+    boundingBoxes: [
+      { id: 'bb10', label: 'Logo Area', description: 'Brand logo placement', x: 5, y: 5, width: 30, height: 20 },
+    ],
   },
 ]
 

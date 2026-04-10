@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { LockedContext, DAMAsset, FunnelStage, CanvasOrientation } from '../types'
+import type { LockedContext, DAMAsset, FunnelStage, CanvasOrientation, MoodboardImage } from '../types'
 
 interface ContextDraft {
   projectName: string
@@ -8,7 +8,10 @@ interface ContextDraft {
   funnel: FunnelStage | ''
   canvasOrientation: CanvasOrientation
   artDirection: string
+  moodboard: MoodboardImage[]
+  directionExplanation: string
   assets: DAMAsset[]  // Dynamic array - no limit, no base/custom distinction
+  selectedTemplateId: string | null
 }
 
 interface ContextStore {
@@ -28,7 +31,10 @@ const defaultDraft: ContextDraft = {
   funnel: '',
   canvasOrientation: 'Portrait',
   artDirection: '',
+  moodboard: [],
+  directionExplanation: '',
   assets: [],  // No limit - dynamic array, no base/custom distinction
+  selectedTemplateId: null,
 }
 
 export const useContextStore = create<ContextStore>((set, get) => ({
@@ -49,6 +55,8 @@ export const useContextStore = create<ContextStore>((set, get) => ({
       funnel: (draft.funnel || 'Awareness') as FunnelStage,
       canvasOrientation: draft.canvasOrientation,
       artDirection: draft.artDirection,
+      moodboard: draft.moodboard,
+      directionExplanation: draft.directionExplanation,
       assets: draft.assets,
       brandProfileId: 'bp-cimb-v3',
       brandProfileVersion: 'v3',

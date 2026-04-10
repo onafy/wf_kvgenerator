@@ -55,7 +55,7 @@ export default function ResizerEntryPage() {
 
         <div className="flex border-b border-gray-100">
           {[{ key: 'upload', label: 'Upload Local File' }, { key: 'dam', label: 'Select from DAM' }].map((t) => (
-            <button key={t.key} onClick={() => setActiveTab(t.key as any)}
+            <button key={t.key} onClick={() => setActiveTab(t.key as 'dam' | 'upload')}
               className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === t.key ? 'text-cimb-red border-b-2 border-cimb-red' : 'text-gray-500 hover:text-gray-700'}`}>
               {t.label}
             </button>

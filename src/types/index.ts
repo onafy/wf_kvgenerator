@@ -12,10 +12,20 @@ export interface Project {
   creatorId: string
   creatorName: string
   lastModifiedAt: string
+  lastEditedBy: string        // userId of last person to save a change
+  lastEditedByName: string    // display name of last editor
+  lastEditedAt: string        // ISO timestamp of last edit
   baseAssetUrl: string
   thumbnailUrl: string
   contextId: string
   templateVersionRef?: { templateId: string; version: number } | null
+}
+
+// Moodboard Image
+export interface MoodboardImage {
+  id: string
+  previewUrl: string
+  name: string
 }
 
 // Context
@@ -26,6 +36,8 @@ export interface LockedContext {
   funnel: FunnelStage
   canvasOrientation: CanvasOrientation
   artDirection: string
+  moodboard: MoodboardImage[]
+  directionExplanation: string
   assets: DAMAsset[]  // Single array - no base/custom distinction
   brandProfileId: string
   brandProfileVersion: string
@@ -98,9 +110,20 @@ export interface BoundingBox {
 // Template
 export type TemplateOrigin = 'KVGenerator' | 'ImageEditor'
 
+export interface TemplateBoundingBox {
+  id: string
+  label: string
+  description: string
+  x: number      // percentage 0-100
+  y: number      // percentage 0-100
+  width: number   // percentage 0-100
+  height: number  // percentage 0-100
+}
+
 export interface Template {
   id: string
   name: string
+  description: string
   originTool: TemplateOrigin
   segment: string
   creatorId: string
@@ -111,6 +134,10 @@ export interface Template {
   brandProfileVersion: string
   isPersonal: boolean
   savedAt: string
+  likeCount: number
+  variantCount: number
+  boundingBoxes: TemplateBoundingBox[]
+  createdAt: string
 }
 
 // Brand
@@ -175,6 +202,9 @@ export interface NamingConvention {
   segment: string
   version: string
 }
+
+// Alias for when naming comes as a generic object
+export type FileNaming = NamingConvention
 
 // Canvas Element (used in Editor)
 export type ElementType = 'Static' | 'Dynamic'

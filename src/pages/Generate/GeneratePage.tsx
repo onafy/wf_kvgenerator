@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Sparkles, Pin, PinOff, ArrowLeftRight, RefreshCw, AlertTriangle, Loader2 } from 'lucide-react'
+import { Sparkles, AlertTriangle, Loader2, Plus, Edit2, Download, Maximize2 } from 'lucide-react'
 import { useGenerationStore } from '../../store/useGenerationStore'
 import { useProjectStore } from '../../store/useProjectStore'
 import { useContextStore } from '../../store/useContextStore'
@@ -9,105 +9,124 @@ import { useExportStore } from '../../store/useExportStore'
 import type { Variant } from '../../types'
 
 const MOCK_THUMBS = [
-  'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=400&fit=crop',
-  'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=800&h=600&fit=crop',
+  'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop',
+  'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=600&fit=crop',
 ]
+
+const SEGMENT_PILL: Record<string, string> = {
+  Youth: 'bg-purple-500/20 text-purple-300',
+  Family: 'bg-orange-500/20 text-orange-300',
+  Mass: 'bg-teal-500/20 text-teal-300',
+}
+
+const STATUS_PILL: Record<string, string> = {
+  Draft: 'bg-white/10 text-white/50',
+  InProgress: 'bg-blue-500/20 text-blue-300',
+  Exported: 'bg-emerald-500/20 text-emerald-300',
+}
 
 function ProgressBar({ progress, status }: { progress: number; status: string }) {
   const steps = ['Queued', 'Validating Brand', 'Generating', 'Complete']
   const stepIdx = status === 'queued' ? 0 : status === 'validating' ? 1 : status === 'processing' ? 2 : 3
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
+    <div className="max-w-xl mx-auto mt-16 bg-white/5 border border-white/10 rounded-2xl p-10 text-center">
       <div className="w-16 h-16 bg-cimb-red/20 rounded-full flex items-center justify-center mx-auto mb-4">
         <Loader2 size={28} className="text-cimb-red animate-spin" />
       </div>
       <h3 className="font-semibold text-white mb-1">Generating image options...</h3>
-      <p className="text-sm text-gray-500 mb-6">Estimated time: ~{Math.max(0, Math.round((100 - progress) * 0.45))}s</p>
-      <div className="w-full bg-white/10 rounded-full h-2 mb-6">
-        <div className="bg-cimb-red h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+      <p className="text-sm text-white/40 mb-6">Estimated time: ~{Math.max(0, Math.round((100 - progress) * 0.45))}s</p>
+      <div className="w-full bg-white/10 rounded-full h-1.5 mb-6">
+        <div className="bg-cimb-red h-1.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
       </div>
       <div className="flex justify-between">
         {steps.map((s, i) => (
-          <div key={s} className={`text-xs font-medium ${i <= stepIdx ? 'text-cimb-red' : 'text-gray-600'}`}>{s}</div>
+          <div key={s} className={`text-xs font-medium ${i <= stepIdx ? 'text-cimb-red' : 'text-white/20'}`}>{s}</div>
         ))}
       </div>
     </div>
   )
 }
 
-function ImageOptionCard({ variant, isPinned, isCompareSelected, onPin, onCompare, onEdit, onExport }: {
-  variant: Variant; isPinned: boolean; isCompareSelected: boolean
-  onPin: () => void; onCompare: () => void; onEdit: () => void; onExport: () => void
+function ImageOptionCard({ variant, batchLabel, onEdit, onExport }: {
+  variant: Variant
+  batchLabel: string
+  onEdit: () => void
+  onExport: () => void
 }) {
+  const [selected, setSelected] = useState(false)
+
   return (
-    <div
-      className={`bg-white/5 border rounded-2xl overflow-hidden transition-all ${isCompareSelected ? 'border-blue-400 shadow-lg shadow-blue-400/10' : 'border-white/10 hover:border-white/30'}`}
-    >
-      <div className="relative aspect-square overflow-hidden">
-        <img src={variant.thumbnailUrl} alt="Image Option" className="w-full h-full object-cover" />
+    <div className={`rounded-2xl border overflow-hidden transition-all duration-300 ${selected ? 'border-white/30 bg-white/[0.07]' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
+      {/* Image */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-black/40">
+        <img
+          src={variant.thumbnailUrl}
+          alt="Generated option"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+
+        {/* Batch label badge */}
+        <div className="absolute top-3 right-3">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-black/50 backdrop-blur-md text-white/60 border border-white/10">
+            {batchLabel}
+          </span>
+        </div>
+
         {variant.isGeneratedWithPreviousContext && (
-          <div className="absolute top-2 left-2 bg-amber-500/90 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
+          <div className="absolute top-3 left-3 bg-amber-500/90 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
             <AlertTriangle size={10} /> Previous context
           </div>
         )}
-        {isPinned && (
-          <div className="absolute top-2 right-2 bg-cimb-red text-white rounded-full p-1"><Pin size={10} /></div>
-        )}
-      </div>
-      <div className="p-3">
-        <p className="text-xs text-gray-500 line-clamp-2 mb-3">{variant.promptUsed}</p>
-        <div className="flex gap-1.5 mb-2" onClick={(e) => e.stopPropagation()}>
-          <button onClick={onPin} title={isPinned ? 'Unpin' : 'Pin'} className={`p-1.5 rounded-lg border text-xs transition-colors ${isPinned ? 'border-cimb-red bg-cimb-red/20 text-cimb-red' : 'border-white/10 text-gray-500 hover:border-white/30'}`}>
-            {isPinned ? <PinOff size={13} /> : <Pin size={13} />}
-          </button>
-          <button onClick={onCompare} title="Compare" className={`p-1.5 rounded-lg border text-xs transition-colors ${isCompareSelected ? 'border-blue-400 bg-blue-400/20 text-blue-400' : 'border-white/10 text-gray-500 hover:border-white/30'}`}>
-            <ArrowLeftRight size={13} />
-          </button>
-        </div>
-        <div className="flex flex-col gap-1.5" onClick={(e) => e.stopPropagation()}>
-          <button onClick={onEdit} className="w-full py-1.5 bg-cimb-red text-white text-xs font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-1">
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M8.5 1.5L10.5 3.5L4 10H2V8L8.5 1.5Z" stroke="white" strokeWidth="1.3" strokeLinejoin="round"/></svg>
-            Edit this option
-          </button>
-          <button onClick={onExport} className="w-full py-1.5 bg-white/10 border border-white/20 text-gray-300 text-xs font-medium rounded-lg hover:bg-white/20 transition-colors flex items-center justify-center gap-1">
-            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5M2 10h8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Export / Resize
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
-function CompareModal({ variantA, variantB, onClose, onEditA, onEditB }: {
-  variantA: Variant; variantB: Variant; onClose: () => void
-  onEditA: () => void; onEditB: () => void
-}) {
-  return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6 backdrop-blur-sm">
-      <div className="bg-frnd-dark rounded-2xl w-full max-w-5xl overflow-hidden border border-white/10">
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h3 className="font-semibold text-white">Compare Image Options</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-white text-xl font-bold">&times;</button>
+        {/* Select button */}
+        <div className="absolute bottom-3 left-3">
+          <button
+            onClick={() => setSelected((s) => !s)}
+            className={`px-5 py-2 rounded-xl text-sm font-medium backdrop-blur-md border transition-all ${
+              selected
+                ? 'bg-white text-gray-900 border-white'
+                : 'bg-black/60 border-white/20 text-white hover:bg-black/80'
+            }`}
+          >
+            {selected ? 'Selected' : 'Select'}
+          </button>
         </div>
-        <div className="grid grid-cols-2 gap-px bg-white/10">
-          {([variantA, variantB] as const).map((v, i) => (
-            <div key={v.id} className="bg-white/5 p-4">
-              <div className="text-xs font-medium text-gray-500 mb-2">Image Option {i + 1}</div>
-              <img src={v.thumbnailUrl} alt="" className="w-full aspect-square object-cover rounded-lg mb-3" />
-              <p className="text-xs text-gray-500 mb-3 line-clamp-2">{v.promptUsed}</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={i === 0 ? onEditA : onEditB}
-                  className="flex-1 py-2 bg-cimb-red text-white text-xs font-medium rounded-lg hover:bg-red-700"
-                >
-                  Edit this option
-                </button>
-              </div>
-            </div>
-          ))}
+      </div>
+
+      {/* Card body */}
+      <div className="p-4 space-y-3">
+        <div>
+          <p className="text-xs italic text-white/40 line-clamp-1">&ldquo;{variant.promptUsed}&rdquo;</p>
+          <p className="text-[10px] text-white/25 mt-0.5">
+            {new Date(variant.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) === '00:00'
+              ? 'Just now'
+              : 'Just now'}
+          </p>
         </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit() }}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-white/[0.06] border border-white/10 text-xs font-medium text-white/60 rounded-xl hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <Edit2 size={12} /> Edit
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onExport() }}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-white/[0.06] border border-white/10 text-xs font-medium text-white/60 rounded-xl hover:bg-white/10 hover:text-white transition-colors"
+          >
+            <Download size={12} /> Download
+          </button>
+        </div>
+
+        <button
+          onClick={(e) => { e.stopPropagation(); onExport() }}
+          className="w-full flex items-center justify-center gap-1.5 py-2 bg-white/[0.06] border border-white/10 text-xs font-medium text-white/60 rounded-xl hover:bg-white/10 hover:text-white transition-colors"
+        >
+          <Maximize2 size={12} /> Resize this KV
+        </button>
       </div>
     </div>
   )
@@ -116,11 +135,13 @@ function CompareModal({ variantA, variantB, onClose, onEditA, onEditB }: {
 export default function GeneratePage() {
   const navigate = useNavigate()
   const { id: projectId } = useParams<{ id: string }>()
-  const { startJob, updateJobProgress, completeJob, getVariants, pinVariant, unpinVariant, pinnedVariantIds, compareSelection, toggleCompare, clearCompare } = useGenerationStore()
+  const { startJob, updateJobProgress, completeJob, getVariants } = useGenerationStore()
   const { updateProjectStatus } = useProjectStore()
   const { locked, editedAfterGeneration } = useContextStore()
   const { setActiveVariant } = useEditorStore()
   const { setSelectedDimIds } = useExportStore()
+
+  const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId))
 
   const [progress, setProgress] = useState(0)
   const [status, setStatus] = useState<string>('queued')
@@ -129,7 +150,11 @@ export default function GeneratePage() {
 
   const effectiveProjectId = projectId || 'new-project'
   const variants = getVariants(effectiveProjectId)
-  const compareVariants = compareSelection.map((id) => variants.find((v) => v.id === id)).filter(Boolean) as Variant[]
+
+  const projectName = project?.name || locked?.copy?.split(' ').slice(0, 2).join('') || 'New Project'
+  const segment = project?.segment || locked?.segment || ''
+  const funnel = project?.funnel || locked?.funnel || ''
+  const projectStatus = project?.status || 'Draft'
 
   const startGeneration = () => {
     const jId = startJob(effectiveProjectId)
@@ -148,7 +173,7 @@ export default function GeneratePage() {
             projectId: effectiveProjectId,
             jobId: jId,
             thumbnailUrl: url,
-            promptUsed: `AI-generated image option ${i + 1}: ${locked?.copy || 'Campaign visual'} · ${locked?.segment || 'Retail'} · CIMB brand-safe composition`,
+            promptUsed: `AI-generated image option (mock)`,
             isGeneratedWithPreviousContext: editedAfterGeneration,
             isPinned: false,
             createdAt: new Date().toISOString(),
@@ -164,12 +189,12 @@ export default function GeneratePage() {
   }
 
   useEffect(() => {
-    if (variants.length === 0) startGeneration()
+    queueMicrotask(() => { if (variants.length === 0) startGeneration() })
     return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
   }, [])
 
   useEffect(() => {
-    if (editedAfterGeneration) setShowContextBanner(true)
+    queueMicrotask(() => { if (editedAfterGeneration) setShowContextBanner(true) })
   }, [editedAfterGeneration])
 
   const handleEdit = (variant: Variant) => {
@@ -187,72 +212,90 @@ export default function GeneratePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
+      {/* Page header */}
+      <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2"><Sparkles size={20} className="text-cimb-red" /> AI Visual Generation</h2>
-          {locked && <p className="text-sm text-gray-500 mt-0.5">{locked.segment} · {locked.funnel} · CIMB v3</p>}
+          <div className="flex items-center gap-4 mb-2">
+            <h1 className="text-xl font-semibold text-white">{projectName}</h1>
+            <span className="text-sm text-white/30">Today</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {segment && (
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${SEGMENT_PILL[segment] ?? 'bg-white/10 text-white/60'}`}>
+                {segment}
+              </span>
+            )}
+            {funnel && (
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white/60">
+                {funnel}
+              </span>
+            )}
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${STATUS_PILL[projectStatus] ?? STATUS_PILL.Draft}`}>
+              {projectStatus === 'InProgress' ? 'In Progress' : projectStatus}
+            </span>
+          </div>
         </div>
+
         <div className="flex items-center gap-2">
           {!isGenerating && (
-            <button onClick={startGeneration} className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 text-sm font-medium text-gray-300 rounded-lg hover:bg-white/20 hover:border-white/30 transition-all">
-              <RefreshCw size={14} /> Generate New Image Options
+            <button
+              onClick={startGeneration}
+              className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-sm font-medium text-white/70 rounded-xl hover:bg-white/10 hover:text-white transition-all"
+            >
+              <Sparkles size={14} /> Generate New Options
             </button>
           )}
+          <button
+            onClick={() => navigate(projectId ? `/kv-generator/projects/${projectId}` : '/kv-generator')}
+            className="px-4 py-2 bg-white/5 border border-white/10 text-sm font-medium text-white/70 rounded-xl hover:bg-white/10 hover:text-white transition-all"
+          >
+            Details
+          </button>
         </div>
       </div>
 
+      {/* Context banner */}
       {showContextBanner && (
-        <div className="mb-4 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-center justify-between">
+        <div className="mb-5 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-amber-400">
-            <AlertTriangle size={16} /> Updating context will apply to your next generation. Existing image options are unchanged.
+            <AlertTriangle size={15} /> Context updated — changes apply to your next generation. Existing options are unchanged.
           </div>
-          <button onClick={() => setShowContextBanner(false)} className="text-amber-500 hover:text-amber-300">&times;</button>
-        </div>
-      )}
-
-
-      {compareSelection.length === 2 && (
-        <div className="mb-4 bg-blue-600/90 text-white rounded-xl p-3 flex items-center justify-between">
-          <span className="text-sm font-medium">2 image options selected for comparison</span>
-          <div className="flex gap-2">
-            <button onClick={() => {}} className="px-3 py-1 bg-white text-blue-600 text-xs font-medium rounded-lg flex items-center gap-1"><ArrowLeftRight size={12} /> Compare</button>
-            <button onClick={clearCompare} className="text-white/80 hover:text-white text-sm">&times;</button>
-          </div>
+          <button onClick={() => setShowContextBanner(false)} className="text-amber-500/60 hover:text-amber-400 text-lg leading-none">&times;</button>
         </div>
       )}
 
       {isGenerating ? (
-        <div className="max-w-xl mx-auto mt-8">
-          <ProgressBar progress={progress} status={status} />
-        </div>
+        <ProgressBar progress={progress} status={status} />
       ) : (
         <>
-          <p className="text-xs text-gray-500 mb-4">{variants.length} image option{variants.length !== 1 ? 's' : ''} generated · Use "Edit this option" to refine, or "Export / Resize" to proceed directly to export.</p>
+          {/* Stats line */}
+          <p className="text-sm text-white/30 mb-6">
+            {variants.length} image option{variants.length !== 1 ? 's' : ''} · 0 edited · 0 exported
+          </p>
+
+          {/* Image grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {variants.map((v) => (
+            {variants.map((v, _i) => (
               <ImageOptionCard
                 key={v.id}
                 variant={v}
-                isPinned={pinnedVariantIds.includes(v.id)}
-                isCompareSelected={compareSelection.includes(v.id)}
-                onPin={() => pinnedVariantIds.includes(v.id) ? unpinVariant(v.id) : pinVariant(v.id)}
-                onCompare={() => toggleCompare(v.id)}
+                batchLabel={`v${v.batchNumber ?? 1}`}
                 onEdit={() => handleEdit(v)}
                 onExport={() => handleExportResize(v)}
               />
             ))}
           </div>
-        </>
-      )}
 
-      {compareSelection.length === 2 && compareVariants.length === 2 && (
-        <CompareModal
-          variantA={compareVariants[0]}
-          variantB={compareVariants[1]}
-          onClose={clearCompare}
-          onEditA={() => { clearCompare(); handleEdit(compareVariants[0]) }}
-          onEditB={() => { clearCompare(); handleEdit(compareVariants[1]) }}
-        />
+          {/* Generate More */}
+          <div className="flex justify-center mt-10">
+            <button
+              onClick={startGeneration}
+              className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-sm font-medium text-white/60 rounded-2xl hover:bg-white/10 hover:text-white transition-all"
+            >
+              <Plus size={15} /> Generate More Options
+            </button>
+          </div>
+        </>
       )}
     </div>
   )

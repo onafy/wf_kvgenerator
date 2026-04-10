@@ -34,6 +34,7 @@ export interface ImageEditorVersion {
   thumbnailUrl: string
   instructionSummary: string
   createdAt: string
+  isGeneratedWithPreviousContext?: boolean
 }
 
 // ── Session state ──────────────────────────────────────────────────

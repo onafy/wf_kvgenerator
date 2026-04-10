@@ -26,11 +26,6 @@ function getDimsByPlatform(platformId: DimensionPlatform): DimensionProfile[] {
   return mockDimensions.filter((d) => d.platform === platformId)
 }
 
-function buildFilename(naming: { campaign: string; segment: string; version: string }, dim: DimensionProfile) {
-  const parts = [naming.campaign || 'Campaign', naming.segment || 'Segment', `${dim.width}x${dim.height}`, naming.version || 'v1']
-  return parts.join('_').replace(/\s+/g, '') + '.png'
-}
-
 // ── Shared: inline Share Link panel ───────────────────────────────
 function ShareLinkPanel({ variantId, projectId, imageUrl }: { variantId: string; projectId: string; imageUrl?: string }) {
   const { generateShareLink } = useExportStore()
@@ -144,7 +139,7 @@ function PlatformSizeStep({
 
   const toggleDim = (id: string) => {
     const s = new Set(selectedDims)
-    s.has(id) ? s.delete(id) : s.add(id)
+    if (s.has(id)) { s.delete(id) } else { s.add(id) }
     onSelectionChange(s)
   }
 
@@ -157,7 +152,7 @@ function PlatformSizeStep({
     onSelectionChange(s)
   }
 
-  const selectAll = () => onSelectionChange(new Set(mockDimensions.map((d) => d.id)))
+  const selectAll = () => { onSelectionChange(new Set(mockDimensions.map((d) => d.id))) }
   const deselectAll = () => onSelectionChange(new Set())
 
   const activeDims = getDimsByPlatform(activePlatform)
@@ -170,13 +165,13 @@ function PlatformSizeStep({
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="max-w-4xl mx-auto px-6 py-8 bg-[#0d0d0d] rounded-2xl border border-white/5">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-white">Select Platforms & Sizes</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Choose which platforms and dimensions to include in your export</p>
+          <h2 className="text-lg font-bold text-white">Select Platforms &amp; Sizes</h2>
+          <p className="text-xs text-gray-500 mt-0.5">Choose which platforms and dimensions to include in your export</p>
         </div>
-        <button onClick={onBack} className="text-sm text-gray-500 hover:text-white">← Back</button>
+        <button onClick={onBack} className="text-xs text-gray-500 hover:text-white">← Back</button>
       </div>
 
       <div className="flex gap-5">
@@ -188,19 +183,19 @@ function PlatformSizeStep({
               <button
                 key={p.id}
                 onClick={() => setActivePlatform(p.id)}
-                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-colors ${activePlatform === p.id ? 'bg-cimb-red text-white' : 'bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-colors ${activePlatform === p.id ? 'bg-[#1a1a1a] text-white border border-white/20' : 'bg-[#111111] border border-white/5 text-gray-500 hover:bg-[#1a1a1a] hover:text-white'}`}
               >
                 <span className="text-base">{p.icon}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium truncate">{p.label}</p>
-                  <p className={`text-xs ${activePlatform === p.id ? 'text-red-200' : 'text-gray-600'}`}>{selectedCount}/{dims.length}</p>
+                  <p className={`text-xs ${activePlatform === p.id ? 'text-gray-400' : 'text-gray-600'}`}>{selectedCount}/{dims.length}</p>
                 </div>
               </button>
             )
           })}
-          <div className="pt-2 border-t border-white/10 space-y-1">
-            <button onClick={selectAll} className="w-full text-xs text-gray-500 hover:text-white text-left px-2 py-1">Select all</button>
-            <button onClick={deselectAll} className="w-full text-xs text-gray-500 hover:text-white text-left px-2 py-1">Deselect all</button>
+          <div className="pt-2 border-t border-white/5 space-y-1">
+            <button onClick={selectAll} className="w-full text-xs text-gray-600 hover:text-white text-left px-2 py-1">Select all</button>
+            <button onClick={deselectAll} className="w-full text-xs text-gray-600 hover:text-white text-left px-2 py-1">Deselect all</button>
           </div>
         </div>
 
@@ -208,11 +203,11 @@ function PlatformSizeStep({
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-white">{PLATFORMS.find(p => p.id === activePlatform)?.label}</span>
-              <span className="text-xs text-gray-600">{activeDims.filter(d => selectedDims.has(d.id)).length} of {activeDims.length} selected</span>
+              <span className="text-xs text-gray-500">{activeDims.filter(d => selectedDims.has(d.id)).length} of {activeDims.length} selected</span>
             </div>
             <button
               onClick={() => togglePlatformAll(activePlatform)}
-              className={`text-xs px-3 py-1 rounded-full border transition-colors ${activePlatformAllSelected ? 'bg-cimb-red text-white border-cimb-red' : 'border-white/20 text-gray-400 hover:border-white/40'}`}
+              className={`text-xs px-3 py-1 rounded-full border transition-colors ${activePlatformAllSelected ? 'bg-[#1a1a1a] text-white border-white/20' : 'border-white/10 text-gray-500 hover:bg-[#1a1a1a] hover:text-white'}`}
             >
               {activePlatformAllSelected ? 'Deselect all' : 'Select all'}
             </button>
@@ -224,7 +219,7 @@ function PlatformSizeStep({
               if (dims.length === 0) return null
               return (
                 <div key={orient}>
-                  <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">{orient}</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{orient}</p>
                   <div className="grid grid-cols-3 gap-2">
                     {dims.map((dim) => {
                       const sel = selectedDims.has(dim.id)
@@ -232,13 +227,13 @@ function PlatformSizeStep({
                         <button
                           key={dim.id}
                           onClick={() => toggleDim(dim.id)}
-                          className={`p-2.5 rounded-lg border-2 text-left transition-all ${sel ? 'border-cimb-red bg-cimb-red/10' : 'border-white/10 bg-white/5 hover:border-white/30'}`}
+                          className={`p-2.5 rounded-lg border-2 text-left transition-all ${sel ? 'border-white/30 bg-[#1a1a1a]' : 'border-white/5 bg-[#111111] hover:border-white/20'}`}
                         >
                           <p className="text-xs font-medium text-white leading-tight">{dim.label}</p>
                           <p className="text-xs text-gray-500 mt-0.5">{dim.width}×{dim.height}</p>
                           <div className="flex items-center justify-between mt-1">
                             <span className={`text-xs px-1.5 py-0.5 rounded-full ${ORIENT_COLORS[dim.orientation]}`}>{dim.orientation.charAt(0)}</span>
-                            {sel && <Check size={10} className="text-cimb-red" />}
+                            {sel && <Check size={10} className="text-gray-400" />}
                           </div>
                         </button>
                       )
@@ -252,13 +247,13 @@ function PlatformSizeStep({
       </div>
 
       <div className="mt-6 flex items-center justify-between">
-        <span className="text-sm text-gray-500"><span className="font-semibold text-white">{selectedDims.size}</span> size{selectedDims.size !== 1 ? 's' : ''} selected</span>
+        <span className="text-xs text-gray-500"><span className="font-semibold text-white">{selectedDims.size}</span> size{selectedDims.size !== 1 ? 's' : ''} selected</span>
         <button
           onClick={onNext}
           disabled={selectedDims.size === 0}
-          className="py-3 px-6 bg-cimb-red text-white font-semibold rounded-xl hover:bg-red-700 disabled:opacity-60 flex items-center gap-2"
+          className="py-4 px-10 bg-white text-black text-sm font-bold rounded-xl hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 tracking-wide shadow-lg shadow-white/10"
         >
-          <ChevronRight size={18} /> Continue to Export Preview
+          Resize now <ChevronRight size={18} />
         </button>
       </div>
     </div>
@@ -278,7 +273,7 @@ function ExportPreviewStep({
   onExportDone: (fileLabel: string) => void
 }) {
   const navigate = useNavigate()
-  const { naming, setNamingField, zipStructure, setZipStructure, isExporting, startExport, finishExport, editedTileImages } = useExportStore()
+  const { isExporting, startExport, finishExport, editedTileImages } = useExportStore()
   const { getVariants } = useGenerationStore()
   const { setSourceImage, setReturnTo } = useImageEditorStore()
   const variants = getVariants(effectiveProjectId)
@@ -350,39 +345,6 @@ function ExportPreviewStep({
                   </div>
                 )
               })}
-            </div>
-          </div>
-
-          <div className="bg-white/5 border border-white/10 rounded-xl p-5">
-            <h3 className="font-semibold text-white mb-4">Export Naming Convention</h3>
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {[
-                { key: 'campaign' as const, label: 'Project Name', placeholder: 'e.g. RamadanPromo' },
-                { key: 'segment' as const, label: 'Segment', placeholder: 'e.g. Youth' },
-                { key: 'version' as const, label: 'Version', placeholder: 'v1' },
-              ].map((f) => (
-                <div key={f.key}>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">{f.label}</label>
-                  <input value={naming[f.key]} onChange={(e) => setNamingField(f.key, e.target.value)} placeholder={f.placeholder} className="w-full px-2 py-1.5 text-xs bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-cimb-red/50" />
-                </div>
-              ))}
-            </div>
-            <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-gray-400 space-y-1">
-              {selectedDimList.slice(0, 3).map((d) => (
-                <div key={d.id} className="flex items-center gap-2">
-                  <Check size={11} className="text-green-400 shrink-0" />
-                  {buildFilename(naming, d)}
-                </div>
-              ))}
-              {selectedDimList.length > 3 && <div className="text-gray-600">...and {selectedDimList.length - 3} more</div>}
-            </div>
-            <div className="flex items-center gap-4 mt-4">
-              <span className="text-xs font-medium text-gray-400">ZIP Structure:</span>
-              {(['flat', 'grouped'] as const).map((m) => (
-                <button key={m} onClick={() => setZipStructure(m)} className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${zipStructure === m ? 'bg-cimb-red text-white border-cimb-red' : 'border-white/20 text-gray-400 hover:border-white/40'}`}>
-                  {m === 'flat' ? 'Flat (all files)' : 'Grouped by category'}
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -496,9 +458,6 @@ function ExportCompleteStep({
   onExportAgain: () => void
 }) {
   const { shareLinks } = useExportStore()
-  const { getVariants } = useGenerationStore()
-  const variants = getVariants(effectiveProjectId)
-  const latestVariant = variants[variants.length - 1] || variants[0]
 
   const latestLink = shareLinks.find((l) => l.projectId === effectiveProjectId && !l.isRevoked)
 
@@ -554,11 +513,9 @@ export default function ExportPage() {
   // Auto-advance based on intent param
   useEffect(() => {
     if (intentParam === 'resize') {
-      setIntent('resize')
-      setStep('select')
+      queueMicrotask(() => { setIntent('resize'); setStep('select') })
     } else if (intentParam === 'original') {
-      setIntent('original')
-      setStep('preview')
+      queueMicrotask(() => { setIntent('original'); setStep('preview') })
     }
   }, [intentParam])
 
@@ -594,7 +551,7 @@ export default function ExportPage() {
           selectedDims={new Set(selectedDimIds)}
           onSelectionChange={(next) => setSelectedDimIds(Array.from(next))}
           onNext={handleSelectNext}
-          onBack={() => setStep('intent')}
+          onBack={() => navigate(`/kv-generator/projects/${effectiveProjectId}/edit`)}
         />
       )}
       {step === 'preview' && intent === 'resize' && (

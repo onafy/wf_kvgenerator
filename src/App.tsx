@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
+import { Agentation } from 'agentation'
 import { AppShell } from './components/layout/AppShell'
 import HomePage from './pages/Home/HomePage'
 import DashboardPage from './pages/Dashboard/DashboardPage'
@@ -9,6 +10,7 @@ import EditorPage from './pages/Editor/EditorPage'
 import ExportPage from './pages/Export/ExportPage'
 import TemplateLibraryPage from './pages/Templates/TemplateLibraryPage'
 import TemplateSetupPage from './pages/Templates/TemplateSetupPage'
+import TemplateDetailPage from './pages/Templates/TemplateDetailPage'
 import ProjectDetailPage from './pages/ProjectDetail/ProjectDetailPage'
 import ShareViewPage from './pages/Share/ShareViewPage'
 import ImageEditorDashboardPage from './pages/ImageEditor/ImageEditorDashboardPage'
@@ -37,6 +39,7 @@ const router = createBrowserRouter([
       { path: 'projects/:id/edit', element: <EditorPage /> },
       { path: 'projects/:id/export', element: <ExportPage /> },
       { path: 'templates', element: <TemplateLibraryPage /> },
+      { path: 'templates/:id', element: <TemplateDetailPage /> },
       { path: 'templates/:id/setup', element: <TemplateSetupPage /> },
     ],
   },
@@ -72,6 +75,12 @@ export default function App() {
     <>
       <RouterProvider router={router} />
       <Analytics />
+      <Agentation
+        endpoint="http://localhost:4747"
+        onSessionCreated={(sessionId) => {
+          console.log('Session started:', sessionId)
+        }}
+      />
     </>
   )
 }

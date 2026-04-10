@@ -11,7 +11,7 @@ interface TemplateStore {
   setActiveTab: (tab: 'my' | 'team') => void
   setSearchQuery: (q: string) => void
   selectTemplate: (t: Template | null) => void
-  saveTemplate: (name: string, originTool: TemplateOrigin, thumbnailUrl: string, isPersonal: boolean) => void
+  saveTemplate: (name: string, originTool: TemplateOrigin, thumbnailUrl: string, isPersonal: boolean, description?: string) => void
   deleteTemplate: (id: string) => void
   getTemplate: (id: string) => Template | undefined
 }
@@ -26,10 +26,11 @@ export const useTemplateStore = create<TemplateStore>((set, get) => ({
   setSearchQuery: (q) => set({ searchQuery: q }),
   selectTemplate: (t) => set({ selectedTemplate: t }),
 
-  saveTemplate: (name, originTool, thumbnailUrl, isPersonal) => {
+  saveTemplate: (name, originTool, thumbnailUrl, isPersonal, description = '') => {
     const newTemplate: Template = {
       id: `t-${Date.now()}`,
       name,
+      description,
       originTool,
       segment: 'Retail',
       creatorId: 'u1',
@@ -40,6 +41,10 @@ export const useTemplateStore = create<TemplateStore>((set, get) => ({
       brandProfileVersion: 'v3',
       isPersonal,
       savedAt: new Date().toISOString(),
+      likeCount: 0,
+      variantCount: 0,
+      boundingBoxes: [],
+      createdAt: new Date().toISOString().slice(0, 10),
     }
     set((s) => ({ templates: [newTemplate, ...s.templates] }))
   },

@@ -10,7 +10,6 @@ const DEMO_IMAGES = [
   'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=600&fit=crop',
   'https://images.unsplash.com/photo-1556742031-c6961e8560b0?w=600&h=600&fit=crop',
   'https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1559526324-593bc073d938?w=600&h=600&fit=crop',
 ]
 
 type Step = 'input' | 'brand'
@@ -44,44 +43,44 @@ export default function ImageEditorEntryPage() {
     return (
       <div className="max-w-lg mx-auto px-6 py-16">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Lock size={24} className="text-amber-600" />
+          <div className="w-14 h-14 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock size={24} className="text-amber-500" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Apply Brand Identity?</h2>
-          <p className="text-sm text-gray-500">Brand Identity injection constrains all AI prompts to CIMB's approved colors, typography, and locks brand assets from modification. This is optional.</p>
+          <h2 className="text-xl font-bold text-white mb-2">Apply Brand Identity?</h2>
+          <p className="text-sm text-zinc-400">Brand Identity injection constrains all AI prompts to CIMB's approved colors, typography, and locks brand assets from modification. This is optional.</p>
         </div>
 
         {/* Brand preview */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">CIMB Niaga — Brand Profile v3</p>
+        <div className="bg-zinc-800 rounded-xl border border-zinc-700 p-5 mb-6">
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">CIMB Niaga — Brand Profile v3</p>
           <div className="flex items-center gap-4 mb-3">
             <img src={mockBrandProfileV3.logoUrl} alt="CIMB" className="h-7" />
             <div className="flex gap-2">
               {[mockBrandProfileV3.primaryColor, mockBrandProfileV3.secondaryColor].map((c) => (
                 <div key={c.hex} className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 rounded-full border border-gray-200" style={{ background: c.hex }} />
-                  <span className="text-xs text-gray-600">{c.hex}</span>
+                  <div className="w-5 h-5 rounded-full border border-zinc-600" style={{ background: c.hex }} />
+                  <span className="text-xs text-zinc-300">{c.hex}</span>
                 </div>
               ))}
             </div>
           </div>
-          <p className="text-xs text-gray-500">Fonts: {mockBrandProfileV3.fonts.join(', ')}</p>
-          <div className="mt-3 p-2 bg-amber-50 rounded-lg text-xs text-amber-700 flex items-start gap-1.5">
+          <p className="text-xs text-zinc-400">Fonts: {mockBrandProfileV3.fonts.join(', ')}</p>
+          <div className="mt-3 p-2 bg-amber-950/50 rounded-lg text-xs text-amber-400 flex items-start gap-1.5">
             <AlertCircle size={12} className="shrink-0 mt-0.5" />
             Once enabled, brand identity cannot be disabled mid-session. Start a new session to edit without constraints.
           </div>
         </div>
 
         <div className="flex gap-3">
-          <button onClick={() => handleContinueToCanvas(false)} className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50">
+          <button onClick={() => handleContinueToCanvas(false)} className="flex-1 py-3 bg-zinc-800 border border-zinc-700 text-zinc-300 text-sm font-medium rounded-xl hover:bg-zinc-700">
             Skip — Edit without brand
           </button>
-          <button onClick={() => handleContinueToCanvas(true)} className="flex-1 py-3 bg-cimb-red text-white text-sm font-semibold rounded-xl hover:bg-red-800 flex items-center justify-center gap-2">
+          <button onClick={() => handleContinueToCanvas(true)} className="flex-1 py-3 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 flex items-center justify-center gap-2">
             <Lock size={14} /> Enable Brand Identity
           </button>
         </div>
 
-        <button onClick={() => setStep('input')} className="w-full text-center text-xs text-gray-400 mt-4 hover:text-gray-600">
+        <button onClick={() => setStep('input')} className="w-full text-center text-xs text-zinc-500 mt-4 hover:text-zinc-300">
           ← Back to image selection
         </button>
       </div>
@@ -113,7 +112,7 @@ export default function ImageEditorEntryPage() {
         {/* Tabs */}
         <div className="flex border-b border-gray-100">
           {[{ key: 'dam', label: 'Select from DAM' }, { key: 'upload', label: 'Upload Local File' }].map((t) => (
-            <button key={t.key} onClick={() => setActiveTab(t.key as any)}
+            <button key={t.key} onClick={() => setActiveTab(t.key as 'dam' | 'upload')}
               className={`flex-1 py-3 text-sm font-medium transition-colors ${activeTab === t.key ? 'text-cimb-red border-b-2 border-cimb-red' : 'text-gray-500 hover:text-gray-700'}`}>
               {t.label}
             </button>

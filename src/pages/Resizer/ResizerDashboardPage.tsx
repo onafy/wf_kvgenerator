@@ -22,7 +22,7 @@ export default function ResizerDashboardPage() {
 
   const handleOpenProject = (id: string) => {
     loadProject(id)
-    navigate(`/resizer/projects/${id}`) // the actual resize session flow
+    navigate(`/resizer/projects/${id}`)
   }
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
@@ -31,53 +31,50 @@ export default function ResizerDashboardPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      <div className="flex items-start justify-between mb-10">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-cimb-red/10 rounded-xl flex items-center justify-center shrink-0">
-            <Maximize2 size={24} className="text-cimb-red" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Resizer Projects</h1>
-            <p className="text-sm text-gray-500">Pick up where you left off or start a new platform resizing job.</p>
-          </div>
+    <div className="max-w-6xl mx-auto px-8 py-8">
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-white tracking-tight">Resizer</h1>
+          <p className="mt-1 text-sm text-white/50">Pick up where you left off or start a new platform resizing job.</p>
         </div>
         <button
           onClick={() => navigate('/resizer/new')}
-          className="flex items-center gap-2 px-4 py-2 bg-cimb-red text-white text-sm font-medium rounded-lg hover:bg-red-800"
+          className="flex items-center gap-2 px-4 py-2 bg-white text-frnd-dark text-sm font-semibold rounded-xl hover:bg-gray-100 transition-colors"
         >
-          <Plus size={16} /> New Resizer Project
+          <Plus size={15} /> New Resizer Project
         </button>
       </div>
 
       {projects.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center shadow-sm">
-          <Maximize2 size={48} className="text-gray-200 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Start your first project</h2>
-          <p className="text-sm text-gray-500 mb-6">Upload an image to begin resizing.</p>
+        <div className="rounded-3xl border border-white/5 bg-white/[0.02] p-16 text-center">
+          <div className="w-20 h-20 rounded-3xl bg-white/5 flex items-center justify-center mx-auto mb-6">
+            <Maximize2 size={32} className="text-white/20" />
+          </div>
+          <h2 className="text-lg font-medium text-white/60 mb-2">Start your first project</h2>
+          <p className="text-sm text-white/30 mb-6 max-w-xs mx-auto">Upload an image to begin resizing across platforms.</p>
           <button
             onClick={() => navigate('/resizer/new')}
-            className="px-6 py-3 bg-cimb-red text-white text-sm font-semibold rounded-xl hover:bg-red-800 inline-flex items-center gap-2"
+            className="px-5 py-2.5 bg-white text-frnd-dark text-sm font-semibold rounded-xl hover:bg-gray-100 transition-colors inline-flex items-center gap-2"
           >
-            <Plus size={16} /> New Project
+            <Plus size={15} /> New Project
           </button>
         </div>
       ) : (
         <>
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <div className="flex gap-3 mb-6">
+            <div className="flex-1 relative max-w-md">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search projects..."
-                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cimb-red/20 focus:border-cimb-red"
+                className="w-full h-10 pl-10 pr-4 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 focus:bg-white/[0.07] transition-all"
               />
             </div>
             <select
               value={filter}
-              onChange={(e) => setFilter(e.target.value as any)}
-              className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-cimb-red bg-white"
+              onChange={(e) => setFilter(e.target.value as 'All' | 'From Projects' | 'My Uploads')}
+              className="h-10 px-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white/70 focus:outline-none focus:border-white/30 cursor-pointer"
             >
               <option value="All">All Sources</option>
               <option value="From Projects">From KV Generator</option>
@@ -90,32 +87,32 @@ export default function ResizerDashboardPage() {
               <button
                 key={proj.id}
                 onClick={() => handleOpenProject(proj.id)}
-                className="group relative flex flex-col items-start p-3 bg-white border border-gray-200 rounded-xl hover:border-cimb-red/30 hover:shadow-sm transition-all text-left"
+                className="group relative flex flex-col items-start p-3 bg-white/5 border border-white/10 rounded-2xl hover:border-white/20 hover:bg-white/[0.08] transition-all text-left"
               >
-                <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3">
+                <div className="w-full aspect-square bg-black/40 rounded-xl overflow-hidden mb-3 border border-white/[0.06]">
                   {proj.thumbnailUrl ? (
-                    <img src={proj.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                    <img src={proj.thumbnailUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center"><ImageIcon size={24} className="text-gray-300" /></div>
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon size={24} className="text-white/20" />
+                    </div>
                   )}
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900 truncate w-full mb-1 group-hover:text-cimb-red transition-colors">{proj.name}</h3>
-                <div className="flex items-center gap-2 w-full">
-                  <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium uppercase tracking-wider rounded-full border border-gray-200 truncate">
-                    {proj.sourceProjectId && proj.sourceProjectName ? `From ${proj.sourceProjectName}` : 'My Upload'}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-400 mt-2 flex items-center justify-between w-full">
+                <h3 className="text-sm font-medium text-white truncate w-full mb-1.5">{proj.name}</h3>
+                <span className="px-2 py-0.5 bg-white/10 text-white/50 text-[10px] font-medium uppercase tracking-wider rounded-full border border-white/10 truncate max-w-full">
+                  {proj.sourceProjectId && proj.sourceProjectName ? `From ${proj.sourceProjectName}` : 'My Upload'}
+                </span>
+                <div className="text-[11px] text-white/30 mt-2 flex items-center justify-between w-full">
                   <span>Last edited {new Date(proj.lastEditedAt).toLocaleDateString()}</span>
                   <span>{proj.selectedDimIds.length} sizes</span>
                 </div>
 
                 {/* Delete button (hover) */}
-                <div 
-                  className="absolute top-4 right-4 p-1.5 bg-white rounded-md border border-gray-200 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 hover:border-red-200 focus:opacity-100"
+                <div
+                  className="absolute top-3 right-3 p-1.5 bg-white/10 rounded-lg border border-white/10 text-white/30 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/20"
                   onClick={(e) => handleDelete(e, proj.id)}
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={13} />
                 </div>
               </button>
             ))}
